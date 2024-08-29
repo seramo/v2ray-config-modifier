@@ -14,7 +14,7 @@
     <div class="row">
         <div class="col-12">
             <label for="vlessInput" class="form-label">کانفیگ VLESS</label>
-            <input type="text" id="vlessInput" class="form-control" placeholder="Enter VLESS config here..." dir="ltr">
+            <input type="text" id="vlessInput" class="form-control" placeholder="VLESS config" dir="ltr">
         </div>
         <div class="col-12 mt-3">
             <label for="ipRange" class="form-label">رنج آی پی (CIDR)</label>
@@ -78,11 +78,19 @@
 
     function copyToClipboard() {
         const outputDiv = document.getElementById('output');
-        navigator.clipboard.writeText(outputDiv.innerText).then(() => {
+        const outputText = outputDiv.innerText;
+
+        if (!outputText.trim()) {
+            alert('خروجی خالی است. لطفا ابتدا خروجی‌ها را تولید کنید.');
+            return;
+        }
+
+        navigator.clipboard.writeText(outputText).then(() => {
             alert('خروجی‌ها به کلیپ‌بورد کپی شد.');
         }).catch(err => {
             alert('خطا در کپی به کلیپ‌بورد: ' + err);
         });
     }
+
 </script>
 </html>
