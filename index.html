@@ -14,7 +14,7 @@
     <div class="row">
         <div class="col-12">
             <label for="vlessInput" class="form-label">کانفیگ VLESS</label>
-            <input type="text" id="vlessInput" class="form-control" placeholder="Enter VLESS URL here..." dir="ltr">
+            <input type="text" id="vlessInput" class="form-control" placeholder="Enter VLESS config here..." dir="ltr">
         </div>
         <div class="col-12 mt-3">
             <label for="ipRange" class="form-label">رنج آی پی (CIDR)</label>
@@ -60,7 +60,7 @@
 
         const match = vlessUrl.match(/^(vless:\/\/[^@]+)@([^:]+)(:.+)$/);
         if (!match) {
-            alert('فرمت URL VLESS معتبر نیست.');
+            alert('فرمت کانفیگ VLESS معتبر نیست.');
             return;
         }
 
