@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<title>VLESS Config Modifier</title>
+<style>
+    body { font-family: Arial, sans-serif; }
+    .output { margin-top: 20px; white-space: pre-wrap; word-wrap: break-word; }
+    textarea { width: 100%; height: 100px; }
+</style>
+</head>
+<body>
+<label for="vlessInput">ورودی VLESS:</label>
+<input type="text" id="vlessInput" style="width: 100%;" placeholder="Enter VLESS URL here...">
+<br><br>
+<label for="ipRange">رنج آی پی (CIDR):</label>
+<input type="text" id="ipRange" style="width: 100%;" placeholder="e.g., 103.21.244.0/22">
+<br><br>
+<button onclick="modifyVLESS()">تولید و نمایش خروجی‌ها</button>
+<button onclick="copyToClipboard()">کپی خروجی‌ها به کلیپ‌بورد</button>
+<br><br>
+<div class="output" id="output"></div>
+<script>
+function ipRangeFromCIDR(cidr) {
+    const [range, bits] = cidr.split('/');
+    const mask = -1 << (32 - bits);
+    const start = range.split('.').reduce((sum, value) => (sum << 8) + parseInt(value), 0) & mask;
+    const end = start + (1 << (32 - bits)) - 1;
+
+    return { start, end };
+}
+
+function ipFromInteger(integer) {
+    return [(integer >> 24) & 255, (integer >> 16) & 255, (integer >> 8) & 255, integer & 255].join('.');
+}
+
+function modifyVLESS() {
+    const vlessUrl = document.getElementById('vlessInput').value;
+    const ipRange = document.getElementById('ipRange').value;
+    const outputDiv = document.getElementById('output');
+    outputDiv.innerHTML = ''; // Clear previous output
+
+    if (!vlessUrl || !ipRange) {
+        alert('لطفا هر دو فیلد را پر کنید.');
+        return;
+    }
+
+    const match = vlessUrl.match(/^(vless:\/\/[^@]+)@([^:]+)(:.+)$/);
+    if (!match) {
+        alert('فرمت URL VLESS معتبر نیست.');
+        return;
+    }
+
+    const [_, start, domain, end] = match;
+    const { start: ipStart, end: ipEnd } = ipRangeFromCIDR(ipRange);
+
+    for (let ipInt = ipStart; ipInt <= ipEnd; ipInt++) {
+        const ip = ipFromInteger(ipInt);
+        const result = `${start}@${ip}${end}\n`;
+        outputDiv.innerHTML += result;
+    }
+}
+
+function copyToClipboard() {
+    const outputDiv = document.getElementById('output');
+    navigator.clipboard.writeText(outputDiv.innerText).then(() => {
+        alert('خروجی‌ها به کلیپ‌بورد کپی شد.');
+    }).catch(err => {
+        alert('خطا در کپی به کلیپ‌بورد: ' + err);
+    });
+}
+</script>
+</body>
+</html>
