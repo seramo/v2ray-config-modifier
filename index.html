@@ -38,7 +38,6 @@ function modifyVLESS() {
     const vlessUrl = document.getElementById('vlessInput').value;
     const ipRange = document.getElementById('ipRange').value;
     const outputDiv = document.getElementById('output');
-    outputDiv.innerHTML = ''; // Clear previous output
 
     if (!vlessUrl || !ipRange) {
         alert('لطفا هر دو فیلد را پر کنید.');
@@ -53,12 +52,14 @@ function modifyVLESS() {
 
     const [_, start, domain, end] = match;
     const { start: ipStart, end: ipEnd } = ipRangeFromCIDR(ipRange);
+    let result = '';
 
     for (let ipInt = ipStart; ipInt <= ipEnd; ipInt++) {
         const ip = ipFromInteger(ipInt);
-        const result = `${start}@${ip}${end}\n`;
-        outputDiv.innerHTML += result;
+        result += `${start}@${ip}${end}\n`;
     }
+    
+    outputDiv.innerHTML = result;
 }
 
 function copyToClipboard() {
