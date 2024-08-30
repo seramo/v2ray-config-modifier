@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>VLESS Config Modifier</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ipaddr.js/2.0.1/ipaddr.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         #output {
@@ -14,41 +15,61 @@
     </style>
 </head>
 <body class="container mt-4">
-    <div class="row">
-        <div class="col-12">
-            <label for="vlessInput" class="form-label">کانفیگ VLESS</label>
-            <input type="text" id="vlessInput" class="form-control" placeholder="VLESS config" dir="ltr">
-        </div>
-        <div class="col-12 mt-3">
-            <label for="ipRange" class="form-label">رنج آی پی (CIDR)</label>
-            <input type="text" id="ipRange" class="form-control" placeholder="e.g., 103.21.244.0/22" dir="ltr">
-        </div>
-        <div class="col-12 mt-3">
-            <button onclick="modifyVLESS()" class="btn btn-primary">تولید کانفیگ‌ها</button>
-            <button onclick="copyToClipboard()" class="btn btn-secondary">ذخیره در کلیپ‌بورد</button>
-        </div>
-        <div class="col-12 mt-3">
-            <div class="p-3 bg-light border" id="output" dir="ltr"></div>
-        </div>
+<div class="row">
+    <div class="col-12">
+        <label for="vlessInput" class="form-label">کانفیگ VLESS</label>
+        <input type="text" id="vlessInput" class="form-control" placeholder="VLESS config" dir="ltr">
     </div>
+    <div class="col-12 mt-3">
+        <label for="ipRange" class="form-label">رنج آی پی (CIDR)</label>
+        <input type="text" id="ipRange" class="form-control" placeholder="e.g., 103.21.244.0/22 or 2400:cb00::/32" dir="ltr">
+    </div>
+    <div class="col-12 mt-3">
+        <label for="outputCount" class="form-label">تعداد خروجی‌ها</label>
+        <select id="outputCount" class="form-control">
+            <option value="10000">10000</option>
+            <option value="20000">20000</option>
+            <option value="30000">30000</option>
+            <option value="40000">40000</option>
+            <option value="50000">50000</option>
+            <option value="unlimited">بدون محدودیت</option>
+        </select>
+    </div>
+    <div class="col-12 mt-3">
+        <button onclick="modifyVLESS()" class="btn btn-primary">تولید کانفیگ‌ها</button>
+        <button onclick="copyToClipboard()" class="btn btn-secondary">ذخیره در کلیپ‌بورد</button>
+    </div>
+    <div class="col-12 mt-3">
+        <div class="p-3 bg-light border" id="output" dir="ltr"></div>
+    </div>
+</div>
 </body>
 <script>
-    function ipRangeFromCIDR(cidr) {
-        const [range, bits] = cidr.split('/');
-        const mask = -1 << (32 - bits);
-        const start = range.split('.').reduce((sum, value) => (sum << 8) + parseInt(value), 0) & mask;
-        const end = start + (1 << (32 - bits)) - 1;
-
-        return { start, end };
+    function isValidCIDR(cidr) {
+        return /^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$/.test(cidr) || /^[0-9a-fA-F:]+\/\d{1,3}$/.test(cidr);
     }
 
-    function ipFromInteger(integer) {
-        return [(integer >> 24) & 255, (integer >> 16) & 255, (integer >> 8) & 255, integer & 255].join('.');
+    function incrementIPv6(ip) {
+        let parts = ip.parts.map(part => BigInt(part));
+        let i = parts.length - 1;
+
+        while (i >= 0) {
+            parts[i] = parts[i] + 1n;
+            if (parts[i] > 0xFFFFn) {
+                parts[i] = 0n;
+                i--;
+            } else {
+                break;
+            }
+        }
+
+        return ipaddr.IPv6.parse(parts.map(part => part.toString(16)).join(':'));
     }
 
     function modifyVLESS() {
         const vlessUrl = document.getElementById('vlessInput').value;
         const ipRange = document.getElementById('ipRange').value;
+        const outputCount = document.getElementById('outputCount').value;
         const outputDiv = document.getElementById('output');
 
         if (!vlessUrl || !ipRange) {
@@ -56,8 +77,8 @@
             return;
         }
 
-        if (!/^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$/.test(ipRange)) {
-            alert('لطفا یک رنج آی پی ورژن ۴ معتبر وارد کنید.');
+        if (!isValidCIDR(ipRange)) {
+            alert('لطفا یک رنج آی پی معتبر وارد کنید.');
             return;
         }
 
@@ -68,16 +89,47 @@
         }
 
         const [_, start, domain, end] = match;
-        const { start: ipStart, end: ipEnd } = ipRangeFromCIDR(ipRange);
-        let result = '';
+        const [ip, range] = ipaddr.parseCIDR(ipRange);
+        const ipType = ip.kind();
 
-        for (let ipInt = ipStart; ipInt <= ipEnd; ipInt++) {
-            const ip = ipFromInteger(ipInt);
-            result += `${start}@${ip}${end}\n\n`;
+        if (outputCount === 'unlimited' && ipType === 'ipv6') {
+            alert('تعداد خروجی بدون محدودیت فقط برای رنج آی پی های ورژن 4 قابل استفاده است.');
+            return;
+        }
+
+        let result = '';
+        let count = 0;
+
+        let currentIp = ip;
+        while (currentIp.match(ipaddr.parseCIDR(ipRange))) {
+            let ipStr = ipType === 'ipv6' ? `[${currentIp.toString()}]` : currentIp.toString();
+
+            result += `${start}@${ipStr}${end}\n\n`;
+            count++;
+
+            if (outputCount !== 'unlimited' && count >= parseInt(outputCount)) {
+                break;
+            }
+
+            if (ipType === 'ipv4') {
+                let currentIpNumeric = currentIp.octets.reduce((acc, octet) => (acc << 8) + octet, 0);
+                currentIpNumeric += 1;
+
+                const nextIpOctets = [
+                    (currentIpNumeric >>> 24) & 0xFF,
+                    (currentIpNumeric >>> 16) & 0xFF,
+                    (currentIpNumeric >>> 8) & 0xFF,
+                    currentIpNumeric & 0xFF
+                ];
+                currentIp = new ipaddr.IPv4(nextIpOctets);
+            } else {
+                currentIp = incrementIPv6(currentIp);
+            }
         }
 
         outputDiv.innerHTML = result;
         outputDiv.style.display = 'block';
+        alert(`تعداد کانفیگ‌های تولید شده: ${count}`);
     }
 
     function copyToClipboard() {
@@ -95,6 +147,5 @@
             alert('خطای ذخیره‌سازی در کلیپ‌بورد: ' + err);
         });
     }
-
 </script>
 </html>
