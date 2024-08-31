@@ -20,12 +20,20 @@
         <label for="vlessInput" class="form-label">کانفیگ VLESS</label>
         <input type="text" id="vlessInput" class="form-control" placeholder="VLESS config" dir="ltr">
     </div>
+
     <div class="col-12 mt-3">
+        <label for="inputType" class="form-label">نوع ورودی</label>
+        <select id="inputType" class="form-control" onchange="toggleInputFields()">
+            <option value="cidr">رنج آی پی</option>
+            <option value="list">لیست آی پی</option>
+        </select>
+    </div>
+
+    <div class="col-12 mt-3" id="cidrFields">
         <label for="ipRange" class="form-label">رنج آی پی (CIDR)</label>
         <input type="text" id="ipRange" class="form-control" placeholder="e.g., 103.21.244.0/22 or 2400:cb00::/32" dir="ltr">
-    </div>
-    <div class="col-12 mt-3">
-        <label for="outputCount" class="form-label">تعداد خروجی‌ها</label>
+
+        <label for="outputCount" class="form-label mt-3">تعداد خروجی‌ها</label>
         <select id="outputCount" class="form-control">
             <option value="10000">10000</option>
             <option value="20000">20000</option>
@@ -35,8 +43,14 @@
             <option value="unlimited">بدون محدودیت</option>
         </select>
     </div>
+
+    <div class="col-12 mt-3" id="listFields" style="display: none;">
+        <label for="ipList" class="form-label">لیست آی پی‌</label>
+        <textarea id="ipList" class="form-control" rows="8" placeholder="هر آی پی در یک خط" dir="ltr"></textarea>
+    </div>
+
     <div class="col-12 mt-3">
-        <button onclick="modifyVLESS()" class="btn btn-primary">تولید کانفیگ‌ها</button>
+        <button onclick="generateConfigs()" class="btn btn-primary">تولید کانفیگ‌ها</button>
         <button onclick="copyToClipboard()" class="btn btn-secondary">ذخیره در کلیپ‌بورد</button>
     </div>
     <div class="col-12 mt-3">
@@ -45,6 +59,20 @@
 </div>
 </body>
 <script>
+    function toggleInputFields() {
+        const inputType = document.getElementById('inputType').value;
+        const cidrFields = document.getElementById('cidrFields');
+        const listFields = document.getElementById('listFields');
+
+        if (inputType === 'cidr') {
+            cidrFields.style.display = 'block';
+            listFields.style.display = 'none';
+        } else {
+            cidrFields.style.display = 'none';
+            listFields.style.display = 'block';
+        }
+    }
+
     function isValidCIDR(cidr) {
         return /^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$/.test(cidr) || /^[0-9a-fA-F:]+\/\d{1,3}$/.test(cidr);
     }
@@ -66,14 +94,29 @@
         return ipaddr.IPv6.parse(parts.map(part => part.toString(16)).join(':'));
     }
 
-    function modifyVLESS() {
+    function generateConfigs() {
+        const inputType = document.getElementById('inputType').value;
+
+        if (inputType === 'cidr') {
+            modifyVLESSFromCIDR();
+        } else {
+            modifyVLESSFromList();
+        }
+    }
+
+    function modifyVLESSFromCIDR() {
         const vlessUrl = document.getElementById('vlessInput').value;
         const ipRange = document.getElementById('ipRange').value;
         const outputCount = document.getElementById('outputCount').value;
         const outputDiv = document.getElementById('output');
 
-        if (!vlessUrl || !ipRange) {
-            alert('لطفا هر دو فیلد را پر کنید.');
+        if (!vlessUrl) {
+            alert('لطفا کانفیگ VLESS را وارد کنید.');
+            return;
+        }
+
+        if (!ipRange) {
+            alert('لطفا رنج آی پی را وارد کنید.');
             return;
         }
 
@@ -130,6 +173,48 @@
         outputDiv.innerHTML = result;
         outputDiv.style.display = 'block';
         alert(`تعداد کانفیگ‌های تولید شده: ${count}`);
+    }
+
+    function modifyVLESSFromList() {
+        const vlessUrl = document.getElementById('vlessInput').value;
+        const ipList = document.getElementById('ipList').value.trim().split('\n').filter(ip => ip.trim() !== '');
+        const outputDiv = document.getElementById('output');
+
+        if (!vlessUrl) {
+            alert('لطفا کانفیگ VLESS را وارد کنید.');
+            return;
+        }
+
+        if (ipList.length === 0) {
+            alert('لطفا لیست آی پی‌ را وارد کنید.');
+            return;
+        }
+
+        const match = vlessUrl.match(/^(vless:\/\/[^@]+)@([^:]+)(:.+)$/);
+        if (!match) {
+            alert('فرمت کانفیگ VLESS معتبر نیست.');
+            return;
+        }
+
+        const [_, start, domain, end] = match;
+        let result = '';
+
+        for (const ip of ipList) {
+            let ipStr = ip.trim();
+            if (ipaddr.isValid(ipStr)) {
+                if (ipaddr.parse(ipStr).kind() === 'ipv6') {
+                    ipStr = `[${ipStr}]`;
+                }
+                result += `${start}@${ipStr}${end}\n\n`;
+            } else {
+                alert(`آی پی نامعتبر یافت شد: ${ipStr}`);
+                return;
+            }
+        }
+
+        outputDiv.innerHTML = result;
+        outputDiv.style.display = 'block';
+        alert(`تعداد کانفیگ‌های تولید شده: ${ipList.length}`);
     }
 
     function copyToClipboard() {
