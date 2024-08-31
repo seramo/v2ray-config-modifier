@@ -18,7 +18,7 @@
     <div class="row">
         <div class="col-12">
             <label for="vlessInput" class="form-label">کانفیگ VLESS</label>
-            <input type="text" id="vlessInput" class="form-control" placeholder="VLESS config" dir="ltr">
+            <input type="text" id="vlessInput" class="form-control" placeholder="VLESS کانفیگ" dir="ltr">
         </div>
 
         <div class="col-12 mt-3">
@@ -31,7 +31,7 @@
 
         <div class="col-12 mt-3" id="cidrFields">
             <label for="ipRange" class="form-label">رنج آی پی (CIDR)</label>
-            <input type="text" id="ipRange" class="form-control" placeholder="e.g., 103.21.244.0/22 or 2400:cb00::/32" dir="ltr">
+            <textarea id="ipRange" class="form-control" rows="4" placeholder="هر رنج آی پی در یک خط" dir="ltr"></textarea>
 
             <label for="outputCount" class="form-label mt-3">تعداد خروجی‌ها</label>
             <select id="outputCount" class="form-control">
@@ -57,7 +57,7 @@
         <div class="col-12 mt-3">
             <div class="p-3 bg-light border" id="output" dir="ltr"></div>
         </div>
-</div>
+    </div>
 </body>
 <script>
     function toggleInputFields() {
@@ -107,7 +107,7 @@
 
     function modifyVLESSFromCIDR() {
         const vlessConfig = document.getElementById('vlessInput').value;
-        const ipRange = document.getElementById('ipRange').value;
+        const ipRanges = document.getElementById('ipRange').value.trim().split('\n').filter(range => range.trim() !== '');
         const outputCount = document.getElementById('outputCount').value;
         const outputDiv = document.getElementById('output');
 
@@ -116,14 +116,16 @@
             return;
         }
 
-        if (!ipRange) {
-            alert('لطفا رنج آی پی را وارد کنید.');
+        if (ipRanges.length === 0) {
+            alert('لطفا حداقل یک رنج آی پی را وارد کنید.');
             return;
         }
 
-        if (!isValidCIDR(ipRange)) {
-            alert('لطفا یک رنج آی پی معتبر وارد کنید.');
-            return;
+        for (const ipRange of ipRanges) {
+            if (!isValidCIDR(ipRange.trim())) {
+                alert(`لطفا یک رنج آی پی معتبر وارد کنید: ${ipRange}`);
+                return;
+            }
         }
 
         const match = vlessConfig.match(/^(vless:\/\/[^@]+)@([^:]+)(:.+)$/);
@@ -133,41 +135,43 @@
         }
 
         const [_, start, domain, end] = match;
-        const [ip, range] = ipaddr.parseCIDR(ipRange);
-        const ipType = ip.kind();
-
-        if (outputCount === 'unlimited' && ipType === 'ipv6') {
-            alert('تعداد خروجی بدون محدودیت فقط برای رنج آی پی های ورژن 4 قابل استفاده است.');
-            return;
-        }
-
         let result = '';
         let count = 0;
 
-        let currentIp = ip;
-        while (currentIp.match(ipaddr.parseCIDR(ipRange))) {
-            let ipStr = ipType === 'ipv6' ? `[${currentIp.toString()}]` : currentIp.toString();
+        for (const ipRange of ipRanges) {
+            const [ip, range] = ipaddr.parseCIDR(ipRange.trim());
+            const ipType = ip.kind();
 
-            result += `${start}@${ipStr}${end}\n\n`;
-            count++;
-
-            if (outputCount !== 'unlimited' && count >= parseInt(outputCount)) {
-                break;
+            if (outputCount === 'unlimited' && ipType === 'ipv6') {
+                alert('تعداد خروجی بدون محدودیت فقط برای رنج آی پی های ورژن 4 قابل استفاده است.');
+                return;
             }
 
-            if (ipType === 'ipv4') {
-                let currentIpNumeric = currentIp.octets.reduce((acc, octet) => (acc << 8) + octet, 0);
-                currentIpNumeric += 1;
+            let currentIp = ip;
+            while (currentIp.match(ipaddr.parseCIDR(ipRange.trim())) && (outputCount === 'unlimited' || count < parseInt(outputCount))) {
+                let ipStr = ipType === 'ipv6' ? `[${currentIp.toString()}]` : currentIp.toString();
 
-                const nextIpOctets = [
-                    (currentIpNumeric >>> 24) & 0xFF,
-                    (currentIpNumeric >>> 16) & 0xFF,
-                    (currentIpNumeric >>> 8) & 0xFF,
-                    currentIpNumeric & 0xFF
-                ];
-                currentIp = new ipaddr.IPv4(nextIpOctets);
-            } else {
-                currentIp = incrementIPv6(currentIp);
+                result += `${start}@${ipStr}${end}\n\n`;
+                count++;
+
+                if (outputCount !== 'unlimited' && count >= parseInt(outputCount)) {
+                    break;
+                }
+
+                if (ipType === 'ipv4') {
+                    let currentIpNumeric = currentIp.octets.reduce((acc, octet) => (acc << 8) + octet, 0);
+                    currentIpNumeric += 1;
+
+                    const nextIpOctets = [
+                        (currentIpNumeric >>> 24) & 0xFF,
+                        (currentIpNumeric >>> 16) & 0xFF,
+                        (currentIpNumeric >>> 8) & 0xFF,
+                        currentIpNumeric & 0xFF
+                    ];
+                    currentIp = new ipaddr.IPv4(nextIpOctets);
+                } else {
+                    currentIp = incrementIPv6(currentIp);
+                }
             }
         }
 
