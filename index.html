@@ -51,7 +51,8 @@
 
         <div class="col-12 mt-3">
             <button onclick="generateConfigs()" class="btn btn-primary">تولید کانفیگ‌ها</button>
-            <button onclick="copyToClipboard()" class="btn btn-secondary">ذخیره در کلیپ‌بورد</button>
+            <button onclick="copyToClipboard()" class="btn btn-secondary px-4" id="copyButton" disabled>کپی</button>
+            <button onclick="downloadOutput()" class="btn btn-success px-4" id="downloadButton" disabled>دانلود</button>
         </div>
 
         <div class="col-12 mt-3">
@@ -178,7 +179,16 @@
         result = result.trimEnd();
         outputDiv.innerHTML = result;
         outputDiv.style.display = 'block';
-        alert(`تعداد کانفیگ‌های تولید شده: ${count}`);
+
+        if (result) {
+            alert(`تعداد کانفیگ‌های تولید شده: ${count}`);
+            document.getElementById('copyButton').disabled = false;
+            document.getElementById('downloadButton').disabled = false;
+        } else {
+            alert('هیچ کانفیگی تولید نشد.');
+            document.getElementById('copyButton').disabled = true;
+            document.getElementById('downloadButton').disabled = true;
+        }
     }
 
     function modifyVLESSFromList() {
@@ -221,23 +231,48 @@
         result = result.trimEnd();
         outputDiv.innerHTML = result;
         outputDiv.style.display = 'block';
-        alert(`تعداد کانفیگ‌های تولید شده: ${ipList.length}`);
+
+        if (result) {
+            alert(`تعداد کانفیگ‌های تولید شده: ${ipList.length}`);
+            document.getElementById('copyButton').disabled = false;
+            document.getElementById('downloadButton').disabled = false;
+        } else {
+            alert('هیچ کانفیگی تولید نشد.');
+            document.getElementById('copyButton').disabled = true;
+            document.getElementById('downloadButton').disabled = true;
+        }
     }
 
     function copyToClipboard() {
         const outputDiv = document.getElementById('output');
-        const outputText = outputDiv.innerText;
+        let outputText = outputDiv.innerText;
 
-        if (!outputText.trim()) {
-            alert('لطفا ابتدا کانفیگ‌ها را تولید کنید.');
-            return;
-        }
+        outputText = outputText.replace(/\n\n/g, '\n');
 
         navigator.clipboard.writeText(outputText).then(() => {
             alert('کانفیگ‌ها در کلیپ‌بورد ذخیره شدند.');
         }).catch(err => {
             alert('خطای ذخیره‌سازی در کلیپ‌بورد: ' + err);
         });
+    }
+
+    function downloadOutput() {
+        const outputDiv = document.getElementById('output');
+        let outputText = outputDiv.innerText;
+
+        outputText = outputText.replace(/\n\n/g, '\n');
+
+        const blob = new Blob([outputText], { type: 'text/plain' });
+        const now = new Date();
+        const date = now.toISOString().split('T')[0];
+        const time = now.toTimeString().split(' ')[0].replace(/:/g, '-');
+        const fileName = `modified_configs_${date}_${time}.txt`;
+
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName;
+        link.click();
+        URL.revokeObjectURL(link.href);
     }
 </script>
 </html>
