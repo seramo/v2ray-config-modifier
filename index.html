@@ -50,6 +50,7 @@
 
         <div class="col-12 mt-3" id="listFields" style="display: none;">
             <label for="ipList" class="form-label">لیست آی پی‌</label>
+            <button onclick="fetchCleanIPs()" class="badge bg-success border-0 me-1">دریافت آی پی تمیز کلودفلر</button>
             <textarea id="ipList" class="form-control" rows="8" placeholder="هر آی پی در یک خط" dir="ltr"></textarea>
         </div>
 
@@ -245,6 +246,18 @@
             document.getElementById('copyButton').disabled = true;
             document.getElementById('downloadButton').disabled = true;
         }
+    }
+
+    function fetchCleanIPs() {
+        fetch('https://raw.githubusercontent.com/yebekhe/cf-clean-ip-resolver/main/list.json')
+            .then(response => response.json())
+            .then(data => {
+                const ipList = data.ipv4.map(ipInfo => ipInfo.ip).join('\n');
+                document.getElementById('ipList').value = ipList;
+            })
+            .catch(error => {
+                alert('خطا در دریافت داده‌ها: ' + error);
+            });
     }
 
     function copyToClipboard() {
