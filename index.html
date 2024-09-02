@@ -212,7 +212,7 @@
 
     function replaceIPInConfig(inputConfig, ip) {
         let isVmess = inputConfig.startsWith('vmess://');
-        let ipStr = ip.kind() === 'ipv6' ? `[${ip.toString()}]` : ip.toString();
+        let ipStr = ip.toString();
         let result = '';
 
         if (isVmess) {
@@ -220,6 +220,7 @@
             vmessConfig.add = ipStr;
             result = `vmess://${btoa(JSON.stringify(vmessConfig))}\n\n`;
         } else {
+            ipStr = ip.kind() === 'ipv6' ? `[${ipStr}]` : ipStr;
             const match = inputConfig.match(/^(vless:\/\/[^@]+)@([^:]+)(:.+)$/);
             if (!match) {
                 alert('فرمت کانفیگ vless معتبر نیست.');
@@ -231,6 +232,7 @@
 
         return result;
     }
+
 
     function displayResult(result, count) {
         const outputDiv = document.getElementById('output');
