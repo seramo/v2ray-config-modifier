@@ -252,7 +252,8 @@
         fetch('https://raw.githubusercontent.com/yebekhe/cf-clean-ip-resolver/main/list.json')
             .then(response => response.json())
             .then(data => {
-                const ipList = data.ipv4.map(ipInfo => ipInfo.ip).join('\n');
+                const uniqueIPs = new Set(data.ipv4.map(ipInfo => ipInfo.ip));
+                const ipList = Array.from(uniqueIPs).join('\n');
                 document.getElementById('ipList').value = ipList;
             })
             .catch(error => {
