@@ -101,6 +101,19 @@
         return ipaddr.IPv6.parse(parts.map(part => part.toString(16)).join(':'));
     }
 
+    function incrementIPv4(ip) {
+        let currentIpNumeric = ip.octets.reduce((acc, octet) => (acc << 8) + octet, 0);
+        currentIpNumeric += 1;
+
+        const nextIpOctets = [
+            (currentIpNumeric >>> 24) & 0xFF,
+            (currentIpNumeric >>> 16) & 0xFF,
+            (currentIpNumeric >>> 8) & 0xFF,
+            currentIpNumeric & 0xFF
+        ];
+        return new ipaddr.IPv4(nextIpOctets);
+    }
+
     function generateConfigs() {
         const inputType = document.getElementById('inputType').value;
 
@@ -165,16 +178,7 @@
                 }
 
                 if (ipType === 'ipv4') {
-                    let currentIpNumeric = currentIp.octets.reduce((acc, octet) => (acc << 8) + octet, 0);
-                    currentIpNumeric += 1;
-
-                    const nextIpOctets = [
-                        (currentIpNumeric >>> 24) & 0xFF,
-                        (currentIpNumeric >>> 16) & 0xFF,
-                        (currentIpNumeric >>> 8) & 0xFF,
-                        currentIpNumeric & 0xFF
-                    ];
-                    currentIp = new ipaddr.IPv4(nextIpOctets);
+                    currentIp = incrementIPv4(currentIp);
                 } else {
                     currentIp = incrementIPv6(currentIp);
                 }
