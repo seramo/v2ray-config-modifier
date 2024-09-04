@@ -11,6 +11,9 @@
         body {
             font-family: 'Vazirmatn', sans-serif;
         }
+        .bg-cloudflare {
+            background-color: #f48120;
+        }
         #output {
             display: none;
             white-space: pre-wrap;
@@ -43,6 +46,7 @@
 
         <div class="col-12 mt-3" id="cidrFields">
             <label for="ipRange" class="form-label">رنج آی پی (CIDR)</label>
+            <button onclick="loadCloudflareIPRanges()" class="badge bg-cloudflare border-0 me-1">رنج آی پی‌های کلودفلر</button>
             <textarea id="ipRange" class="form-control" rows="4" placeholder="هر رنج آی پی در یک خط" dir="ltr"></textarea>
 
             <label for="outputCount" class="form-label mt-3">تعداد خروجی‌ها</label>
@@ -75,6 +79,14 @@
     </div>
 </div>
 <script>
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
     function toggleInputFields() {
         const inputType = document.getElementById('inputType').value;
         const cidrFields = document.getElementById('cidrFields');
@@ -249,6 +261,30 @@
             document.getElementById('copyButton').disabled = true;
             document.getElementById('downloadButton').disabled = true;
         }
+    }
+
+    function loadCloudflareIPRanges() {
+        const cloudflareIPRanges = [
+            '173.245.48.0/20',
+            '103.21.244.0/22',
+            '103.22.200.0/22',
+            '103.31.4.0/22',
+            '141.101.64.0/18',
+            '108.162.192.0/18',
+            '190.93.240.0/20',
+            '188.114.96.0/20',
+            '197.234.240.0/22',
+            '198.41.128.0/17',
+            '162.158.0.0/15',
+            '104.16.0.0/13',
+            '104.24.0.0/14',
+            '172.64.0.0/13',
+            '131.0.72.0/22'
+        ];
+
+        const shuffledIPRanges = shuffleArray(cloudflareIPRanges);
+
+        document.getElementById('ipRange').value = shuffledIPRanges.join('\n');
     }
 
     function fetchCleanIPs() {
