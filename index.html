@@ -14,11 +14,6 @@
         .bg-cloudflare {
             background-color: #f48120;
         }
-        #output {
-            display: none;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
     </style>
 </head>
 <body>
@@ -70,10 +65,6 @@
             <button onclick="generateConfigs()" class="btn btn-primary">تولید کانفیگ‌ها</button>
             <button onclick="copyToClipboard()" class="btn btn-secondary px-4" id="copyButton" disabled>کپی</button>
             <button onclick="downloadOutput()" class="btn btn-success px-4" id="downloadButton" disabled>دانلود</button>
-        </div>
-
-        <div class="col-12 mt-3">
-            <div class="p-3 bg-light border" id="output" dir="ltr"></div>
         </div>
     </div>
 </div>
