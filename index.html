@@ -78,6 +78,8 @@
     </div>
 </div>
 <script>
+    let generatedOutput = '';
+
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -144,7 +146,6 @@
         const inputConfig = document.getElementById('inputConfig').value;
         const ipRanges = document.getElementById('ipRange').value.trim().split('\n').filter(range => range.trim() !== '');
         const outputCount = document.getElementById('outputCount').value;
-        const outputDiv = document.getElementById('output');
 
         if (!inputConfig) {
             alert('لطفا کانفیگ را وارد کنید.');
@@ -163,7 +164,7 @@
             }
         }
 
-        let result = '';
+        generatedOutput = '';
         let count = 0;
 
         for (const ipRange of ipRanges) {
@@ -177,7 +178,7 @@
 
             let currentIp = ip;
             while (currentIp.match(ipaddr.parseCIDR(ipRange.trim())) && (outputCount === 'unlimited' || count < parseInt(outputCount))) {
-                result += replaceIPInConfig(inputConfig, currentIp);
+                generatedOutput += replaceIPInConfig(inputConfig, currentIp);
                 count++;
 
                 if (outputCount !== 'unlimited' && count >= parseInt(outputCount)) {
@@ -188,13 +189,12 @@
             }
         }
 
-        displayResult(result, count);
+        displayResult(count);
     }
 
     function modifyConfigsFromList() {
         const inputConfig = document.getElementById('inputConfig').value;
         const ipList = document.getElementById('ipList').value.trim().split('\n').filter(ip => ip.trim() !== '');
-        const outputDiv = document.getElementById('output');
 
         if (!inputConfig) {
             alert('لطفا کانفیگ را وارد کنید.');
@@ -206,19 +206,19 @@
             return;
         }
 
-        let result = '';
+        generatedOutput = '';
 
         for (const ip of ipList) {
             let ipStr = ip.trim();
             if (ipaddr.isValid(ipStr)) {
-                result += replaceIPInConfig(inputConfig, ipaddr.parse(ipStr));
+                generatedOutput += replaceIPInConfig(inputConfig, ipaddr.parse(ipStr));
             } else {
                 alert(`آی پی نامعتبر یافت شد: ${ipStr}`);
                 return;
             }
         }
 
-        displayResult(result, ipList.length);
+        displayResult(ipList.length);
     }
 
     function replaceIPInConfig(inputConfig, ip) {
@@ -244,14 +244,8 @@
         return result;
     }
 
-
-    function displayResult(result, count) {
-        const outputDiv = document.getElementById('output');
-        result = result.trimEnd();
-        outputDiv.innerHTML = result;
-        outputDiv.style.display = 'block';
-
-        if (result) {
+    function displayResult(count) {
+        if (generatedOutput) {
             alert(`تعداد کانفیگ‌های تولید شده: ${count}`);
             document.getElementById('copyButton').disabled = false;
             document.getElementById('downloadButton').disabled = false;
@@ -287,35 +281,28 @@
     }
 
     function copyToClipboard() {
-        const outputDiv = document.getElementById('output');
-        let outputText = outputDiv.innerText;
-
-        outputText = outputText.replace(/\n\n/g, '\n');
-
-        navigator.clipboard.writeText(outputText).then(() => {
-            alert('کانفیگ‌ها در کلیپ‌بورد ذخیره شدند.');
-        }).catch(err => {
-            alert('خطای ذخیره‌سازی در کلیپ‌بورد: ' + err);
-        });
+        if (generatedOutput) {
+            navigator.clipboard.writeText(generatedOutput.replace(/\n\n/g, '\n').trimEnd()).then(() => {
+                alert('کانفیگ‌ها در کلیپ‌بورد ذخیره شدند.');
+            }).catch(err => {
+            });
+        }
     }
 
     function downloadOutput() {
-        const outputDiv = document.getElementById('output');
-        let outputText = outputDiv.innerText;
+        if (generatedOutput) {
+            const blob = new Blob([generatedOutput.replace(/\n\n/g, '\n').trimEnd()], { type: 'text/plain' });
+            const now = new Date();
+            const date = now.toISOString().split('T')[0];
+            const time = now.toTimeString().split(' ')[0].replace(/:/g, '-');
+            const fileName = `modified_configs_${date}_${time}.txt`;
 
-        outputText = outputText.replace(/\n\n/g, '\n');
-
-        const blob = new Blob([outputText], { type: 'text/plain' });
-        const now = new Date();
-        const date = now.toISOString().split('T')[0];
-        const time = now.toTimeString().split(' ')[0].replace(/:/g, '-');
-        const fileName = `modified_configs_${date}_${time}.txt`;
-
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = fileName;
-        link.click();
-        URL.revokeObjectURL(link.href);
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
     }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
