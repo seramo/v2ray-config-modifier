@@ -291,6 +291,8 @@
             navigator.clipboard.writeText(generatedOutput.replace(/\n\n/g, '\n').trimEnd()).then(() => {
                 alert('کانفیگ‌ها در کلیپ‌بورد ذخیره شدند.');
             }).catch(err => {
+                console.error(err);
+                alert('خطا در کپی: ' + err);
             });
         }
     }
