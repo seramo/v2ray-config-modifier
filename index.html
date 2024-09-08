@@ -23,12 +23,15 @@
     </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+<nav class="navbar navbar-expand navbar-dark bg-primary">
     <div class="container">
         <a class="navbar-brand me-0" href="https://seramo.github.io/v2ray-config-modifier/">اصلاح کانفیگ</a>
-        <ul class="navbar-nav p-0">
+        <ul class="navbar-nav px-0">
             <li class="nav-item">
-                <a class="nav-link active p-0" href="https://github.com/seramo/v2ray-config-modifier/">گیت‌هاب</a>
+                <a class="nav-link" href="https://youtu.be/J9g1kbdW8Oc/" target="_blank">آموزش</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link ps-0" href="https://github.com/seramo/v2ray-config-modifier/" target="_blank">گیت‌هاب</a>
             </li>
         </ul>
     </div>
@@ -294,6 +297,7 @@
     function displayResult(count) {
         const copyButton = document.getElementById('copyButton');
         const downloadButton = document.getElementById('downloadButton');
+
         if (generatedOutput) {
             showSuccess(`تولید ${count} کانفیگ با موفقیت انجام شد.`);
             copyButton.style.display = 'inline-block';
