@@ -43,6 +43,12 @@
 <div class="container mt-5">
     <div class="row">
         <div class="col-12">
+            <div class="alert" role="alert" id="messageBox" style="display: none;">
+                <span id="messageText"></span>
+            </div>
+        </div>
+
+        <div class="col-12">
             <label for="inputConfig" class="form-label">کانفیگ</label>
             <input type="text" id="inputConfig" class="form-control" placeholder="vless یا vmess" dir="ltr">
         </div>
@@ -85,6 +91,40 @@
 </div>
 <script>
     let generatedOutput = '';
+
+    function showMessage(message, type) {
+        const messageBox = document.getElementById('messageBox');
+        const messageText = document.getElementById('messageText');
+        messageText.textContent = message;
+
+        messageBox.classList.remove('alert-success', 'alert-danger', 'alert-warning');
+
+        switch(type) {
+            case 'success':
+                messageBox.classList.add('alert-success');
+                break;
+            case 'warning':
+                messageBox.classList.add('alert-warning');
+                break;
+            case 'error':
+            default:
+                messageBox.classList.add('alert-danger');
+        }
+
+        messageBox.style.display = 'block';
+    }
+
+    function showError(message) {
+        showMessage(message, 'error');
+    }
+
+    function showWarning(message) {
+        showMessage(message, 'warning');
+    }
+
+    function showSuccess(message) {
+        showMessage(message, 'success');
+    }
 
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
@@ -154,12 +194,12 @@
         const inputConfig = document.getElementById('inputConfig').value;
 
         if (!inputConfig) {
-            alert('لطفا کانفیگ را وارد کنید.');
+            showWarning('لطفا کانفیگ را وارد کنید.');
             return;
         }
 
         if (!isValidConfigFormat(inputConfig)) {
-            alert('کانفیگ معتبر نیست.');
+            showWarning('کانفیگ وارد شده معتبر نیست.');
             return;
         }
 
@@ -175,19 +215,14 @@
         const ipRanges = document.getElementById('ipRange').value.trim().split('\n').filter(range => range.trim() !== '');
         const outputCount = document.getElementById('outputCount').value;
 
-        if (!inputConfig) {
-            alert('لطفا کانفیگ را وارد کنید.');
-            return;
-        }
-
         if (ipRanges.length === 0) {
-            alert('لطفا حداقل یک رنج آی پی را وارد کنید.');
+            showWarning('لطفا حداقل یک رنج آی پی را وارد کنید.');
             return;
         }
 
         for (const ipRange of ipRanges) {
             if (!isValidCIDR(ipRange.trim())) {
-                alert(`لطفا یک رنج آی پی معتبر وارد کنید: ${ipRange}`);
+                showWarning(`لطفا یک رنج آی پی معتبر وارد کنید: ${ipRange}`);
                 return;
             }
         }
@@ -200,7 +235,7 @@
             const ipType = ip.kind();
 
             if (outputCount === 'unlimited' && ipType === 'ipv6') {
-                alert('تعداد خروجی بدون محدودیت فقط برای رنج آی پی های ورژن 4 قابل استفاده است.');
+                showWarning('تعداد خروجی بدون محدودیت فقط برای رنج آی پی های ورژن 4 قابل استفاده است.');
                 return;
             }
 
@@ -225,7 +260,7 @@
         const ipList = document.getElementById('ipList').value.trim().split('\n').filter(ip => ip.trim() !== '');
 
         if (ipList.length === 0) {
-            alert('لطفا لیست آی پی‌ را وارد کنید.');
+            showWarning('لطفا لیست آی پی‌ را وارد کنید.');
             return;
         }
 
@@ -236,7 +271,7 @@
             if (ipaddr.isValid(ipStr)) {
                 generatedOutput += replaceIPInConfig(inputConfig, ipaddr.parse(ipStr));
             } else {
-                alert(`آی پی نامعتبر یافت شد: ${ipStr}`);
+                showWarning(`آی پی نامعتبر یافت شد: ${ipStr}`);
                 return;
             }
         }
@@ -256,10 +291,6 @@
         } else {
             ipStr = ip.kind() === 'ipv6' ? `[${ipStr}]` : ipStr;
             const match = inputConfig.match(/^(vless:\/\/[^@]+)@([^:]+)(:.+)$/);
-            if (!match) {
-                alert('فرمت کانفیگ vless معتبر نیست.');
-                return '';
-            }
             const [_, start, domain, end] = match;
             result = `${start}@${ipStr}${end}\n\n`;
         }
@@ -269,11 +300,11 @@
 
     function displayResult(count) {
         if (generatedOutput) {
-            alert(`تعداد کانفیگ‌های تولید شده: ${count}`);
+            showSuccess(`تولید ${count} کانفیگ با موفقیت انجام شد.`);
             document.getElementById('copyButton').disabled = false;
             document.getElementById('downloadButton').disabled = false;
         } else {
-            alert('هیچ کانفیگی تولید نشد.');
+            showError('هیچ کانفیگی تولید نشد.');
             document.getElementById('copyButton').disabled = true;
             document.getElementById('downloadButton').disabled = true;
         }
@@ -306,10 +337,10 @@
     function copyToClipboard() {
         if (generatedOutput) {
             navigator.clipboard.writeText(generatedOutput.replace(/\n\n/g, '\n').trimEnd()).then(() => {
-                alert('کانفیگ‌ها در کلیپ‌بورد ذخیره شدند.');
+                showSuccess('کانفیگ‌ها در کلیپ‌بورد ذخیره شدند.');
             }).catch(err => {
                 console.error(err);
-                alert('خطا در کپی: ' + err);
+                showError('خطا در کپی: ' + err);
             });
         }
     }
