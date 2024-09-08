@@ -139,8 +139,30 @@
         }
     }
 
+    function isValidConfigFormat(inputConfig) {
+        if (inputConfig.startsWith('vmess://')) {
+            return true;
+        } else if (inputConfig.startsWith('vless://')) {
+            const regex = /vless:\/\/[^@]+@[^:]+:.+/;
+            return regex.test(inputConfig);
+        }
+        return false;
+    }
+
     function generateConfigs() {
         const inputType = document.getElementById('inputType').value;
+        const inputConfig = document.getElementById('inputConfig').value;
+
+        if (!inputConfig) {
+            alert('لطفا کانفیگ را وارد کنید.');
+            return;
+        }
+
+        if (!isValidConfigFormat(inputConfig)) {
+            alert('کانفیگ معتبر نیست.');
+            return;
+        }
+
         if (inputType === 'cidr') {
             modifyConfigsFromCIDR();
         } else {
@@ -201,11 +223,6 @@
     function modifyConfigsFromList() {
         const inputConfig = document.getElementById('inputConfig').value;
         const ipList = document.getElementById('ipList').value.trim().split('\n').filter(ip => ip.trim() !== '');
-
-        if (!inputConfig) {
-            alert('لطفا کانفیگ را وارد کنید.');
-            return;
-        }
 
         if (ipList.length === 0) {
             alert('لطفا لیست آی پی‌ را وارد کنید.');
