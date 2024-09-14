@@ -1,0 +1,21 @@
+body {
+    font-family: 'Vazirmatn', sans-serif;
+}
+
+.bg-cloudflare {
+    background-color: #f48120;
+}
+
+.bg-gcore {
+    background-color: #ff4c00;
+}
+
+.bg-fastly {
+    background-color: #ff282d;
+}
+
+@media (min-width: 768px) {
+    .container {
+        max-width: 720px;
+    }
+}
