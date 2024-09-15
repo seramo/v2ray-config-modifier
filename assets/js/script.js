@@ -1030,9 +1030,12 @@ function loadIPRanges(service) {
             return;
     }
 
-    const shuffledIPRanges = shuffleArray(ipRanges).slice(0, 4);
-
-    document.getElementById('ipRange').value = shuffledIPRanges.join('\n');
+    if (service !== 'gcore') {
+        const shuffledIPRanges = shuffleArray(ipRanges).slice(0, 4);
+        document.getElementById('ipRange').value = shuffledIPRanges.join('\n');
+    } else {
+        document.getElementById('ipRange').value = ipRanges.join('\n');
+    }
 }
 
 function copyToClipboard() {
