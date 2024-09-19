@@ -193,9 +193,9 @@ function replaceIPInConfig(inputConfig, ip) {
     let result = '';
 
     if (isVmess) {
-        let vmessConfig = JSON.parse(atob(inputConfig.replace('vmess://', '')));
+        let vmessConfig = JSON.parse(Base64.decode(inputConfig.replace('vmess://', '')));
         vmessConfig.add = ipStr;
-        result = `vmess://${btoa(JSON.stringify(vmessConfig))}\n\n`;
+        result = `vmess://${Base64.encode(JSON.stringify(vmessConfig))}\n\n`;
     } else {
         ipStr = ip.kind() === 'ipv6' ? `[${ipStr}]` : ipStr;
         const match = inputConfig.match(/^(vless:\/\/[^@]+)@([^:]+)(:.+)$/);
