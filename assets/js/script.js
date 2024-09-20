@@ -3,9 +3,10 @@ let generatedOutput = '';
 function showMessage(message, type) {
     const messageBox = document.getElementById('messageBox');
     const messageText = document.getElementById('messageText');
-    messageText.textContent = message;
 
+    messageBox.style.display = 'none';
     messageBox.classList.remove('alert-success', 'alert-danger', 'alert-warning');
+    messageText.textContent = message;
 
     switch(type) {
         case 'success':
@@ -19,7 +20,9 @@ function showMessage(message, type) {
             messageBox.classList.add('alert-danger');
     }
 
-    messageBox.style.display = 'block';
+    setTimeout(() => {
+        messageBox.style.display = 'block';
+    }, 250);
 }
 
 function showError(message) {
