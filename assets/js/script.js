@@ -59,6 +59,11 @@ function toggleInputFields() {
     }
 }
 
+function updateOutputCountValue() {
+    const rangeValue = document.getElementById('outputCount').value;
+    document.getElementById('outputCountValue').textContent = rangeValue;
+}
+
 function isValidCIDR(cidr) {
     return /^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$/.test(cidr) || /^[0-9a-fA-F:]+\/\d{1,3}$/.test(cidr);
 }
@@ -145,17 +150,12 @@ function modifyConfigsFromCIDR() {
         const [ip, range] = ipaddr.parseCIDR(ipRange.trim());
         const ipType = ip.kind();
 
-        if (outputCount === 'unlimited' && ipType === 'ipv6') {
-            showWarning('تعداد خروجی بدون محدودیت فقط برای رنج آی پی های ورژن 4 قابل استفاده است.');
-            return;
-        }
-
         let currentIp = ip;
-        while (currentIp.match(ipaddr.parseCIDR(ipRange.trim())) && (outputCount === 'unlimited' || count < parseInt(outputCount))) {
+        while (currentIp.match(ipaddr.parseCIDR(ipRange.trim())) && count < parseInt(outputCount)) {
             generatedOutput += replaceIPInConfig(inputConfig, currentIp);
             count++;
 
-            if (outputCount !== 'unlimited' && count >= parseInt(outputCount)) {
+            if (count >= parseInt(outputCount)) {
                 break;
             }
 

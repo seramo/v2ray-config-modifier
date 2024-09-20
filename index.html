@@ -50,16 +50,11 @@
                 <button onclick="loadIPRanges('gcore')" class="badge bg-gcore border-0 me-1">جی‌کور</button>
                 <button onclick="loadIPRanges('fastly')" class="badge bg-fastly border-0 me-1">فستلی</button>
                 <textarea id="ipRange" class="form-control" rows="4" placeholder="هر رنج آی پی در یک خط" dir="ltr"></textarea>
+            </div>
 
-                <label for="outputCount" class="form-label mt-3">تعداد خروجی‌ها</label>
-                <select id="outputCount" class="form-control">
-                    <option value="10000">10000</option>
-                    <option value="20000">20000</option>
-                    <option value="30000">30000</option>
-                    <option value="40000">40000</option>
-                    <option value="50000">50000</option>
-                    <option value="unlimited">بدون محدودیت</option>
-                </select>
+            <div class="col-12">
+                <label for="outputCount" class="form-label mt-3">تعداد خروجی‌ها: <span id="outputCountValue">5000</span></label>
+                <input type="range" class="form-range" min="1000" max="50000" step="1000" id="outputCount" value="5000" oninput="updateOutputCountValue()">
             </div>
 
             <div class="col-12 mt-3" id="listFields" style="display: none;">
@@ -76,6 +71,6 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ipaddr.js/2.0.1/ipaddr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/js-base64@3.7.7/base64.min.js"></script>
-    <script src="assets/js/script.js?v=1.0.2"></script>
+    <script src="assets/js/script.js?v=1.0.3"></script>
 </body>
 </html>
