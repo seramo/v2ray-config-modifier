@@ -51,9 +51,6 @@
                 <button onclick="loadIPRanges('gcore')" class="badge bg-gcore border-0 me-1">جی‌کور</button>
                 <button onclick="loadIPRanges('fastly')" class="badge bg-fastly border-0 me-1">فستلی</button>
                 <textarea id="ipRange" class="form-control" rows="4" placeholder="هر رنج آی پی در یک خط" dir="ltr"></textarea>
-            </div>
-
-            <div class="col-12">
                 <label for="outputCount" class="form-label mt-3">تعداد خروجی‌ها: <span id="outputCountValue">5000</span></label>
                 <input type="range" class="form-range" min="1000" max="50000" step="1000" id="outputCount" value="5000" oninput="updateOutputCountValue()">
             </div>
