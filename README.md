@@ -40,6 +40,14 @@ The **V2Ray Config Modifier** is an HTML and JavaScript-based application design
    - Navigate to the extracted folder.
    - Open `index.html` in your preferred web browser.
 
+## Accessing the Application Online
+
+You can use the **V2Ray Config Modifier** directly from your web browser without the need to install any software. Simply visit the following URL to access the application:
+
+[https://seramo.github.io/v2ray-config-modifier/](https://seramo.github.io/v2ray-config-modifier/)
+
+This web-based version is fully functional and allows you to generate and download V2Ray configurations.
+
 ## Usage
 
 ### Step 1: Input Base Configuration
