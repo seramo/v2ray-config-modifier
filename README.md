@@ -78,12 +78,12 @@ This web-based version is fully functional and allows you to generate and downlo
 - **Copy**: Click the **"Copy"** button to copy all configurations to the clipboard.
 - **Download**: Click the **"Download"** button to save all configurations to a file.
 
+### Note
+
+You can combine custom IP ranges with predefined ranges.
+
 ## Tutorial Video
 
 Here's a quick tutorial on how to use the **V2Ray Config Modifier**:
 
 [![V2Ray Config Modifier Tutorial](https://img.youtube.com/vi/J9g1kbdW8Oc/0.jpg)](https://youtu.be/J9g1kbdW8Oc)
-
-## Note
-
-You can combine custom IP ranges with predefined ranges.
