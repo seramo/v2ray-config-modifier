@@ -67,6 +67,10 @@ This web-based version is fully functional and allows you to generate and downlo
 - **Gcore IP Ranges**: Choose Gcore's IP addresses.
 - **Fastly IP Ranges**: Opt for Fastly's IP addresses.
 
+#### Note
+
+You can combine custom IP ranges with predefined ranges.
+
 ### Step 3: Generate Configurations
 
 - Click the **"Generate Configs"** button.
@@ -77,10 +81,6 @@ This web-based version is fully functional and allows you to generate and downlo
 
 - **Copy**: Click the **"Copy"** button to copy all configurations to the clipboard.
 - **Download**: Click the **"Download"** button to save all configurations to a file.
-
-#### Note
-
-You can combine custom IP ranges with predefined ranges.
 
 ## Tutorial Video
 
