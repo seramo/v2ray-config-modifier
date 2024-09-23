@@ -19,7 +19,7 @@
                 <a class="nav-link" href="https://youtu.be/J9g1kbdW8Oc/" target="_blank">Tutorial</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link ps-0" href="https://github.com/seramo/v2ray-config-modifier/" target="_blank">GitHub</a>
+                <a class="nav-link pe-0" href="https://github.com/seramo/v2ray-config-modifier/" target="_blank">GitHub</a>
             </li>
         </ul>
     </div>
@@ -47,9 +47,9 @@
 
         <div class="col-12 mt-3" id="cidrFields">
             <label for="ipRange" class="form-label">IP Ranges (CIDR)</label>
-            <button onclick="loadIPRanges('cloudflare')" class="badge bg-cloudflare border-0 me-1">Cloudflare</button>
-            <button onclick="loadIPRanges('gcore')" class="badge bg-gcore border-0 me-1">Gcore</button>
-            <button onclick="loadIPRanges('fastly')" class="badge bg-fastly border-0 me-1">Fastly</button>
+            <button onclick="loadIPRanges('cloudflare')" class="badge bg-cloudflare border-0 ms-1">Cloudflare</button>
+            <button onclick="loadIPRanges('gcore')" class="badge bg-gcore border-0 ms-1">Gcore</button>
+            <button onclick="loadIPRanges('fastly')" class="badge bg-fastly border-0 ms-1">Fastly</button>
             <textarea id="ipRange" class="form-control" rows="4" placeholder="Each IP range on a new line" dir="ltr"></textarea>
             <label for="outputCount" class="form-label mt-3">Number of outputs: <span id="outputCountValue">5000</span></label>
             <input type="range" class="form-range" min="1000" max="50000" step="1000" id="outputCount" value="5000" oninput="updateOutputCountValue()">
