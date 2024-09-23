@@ -4,13 +4,13 @@ A web-based tool to generate V2Ray configurations for multiple IP addresses or r
 
 ## Description
 
-The **V2Ray Config Modifier** is an HTML and JavaScript-based application designed to help users generate multiple V2Ray configurations efficiently. Users can enter an existing VLESS or VMESS configuration, specify an IP address or range, or choose from predefined IP ranges of popular CDN providers like Cloudflare, G-Core, and Fastly. The tool then generates new configurations for each IP address in the specified range.
+The **V2Ray Config Modifier** is an HTML and JavaScript-based application designed to help users generate multiple V2Ray configurations efficiently. Users can enter an existing VLESS or VMESS configuration, specify an IP address or range, or choose from predefined IP ranges of popular CDN providers like Cloudflare, Gcore, and Fastly. The tool then generates new configurations for each IP address in the specified range.
 
 ## Features
 
 - **VLESS and VMESS Support**: Accepts both VLESS and VMESS configurations as input.
 - **IP Range Input**: Users can enter custom IP addresses or ranges.
-- **Predefined IP Ranges**: Easily select from existing IP ranges of Cloudflare, G-Core, or Fastly.
+- **Predefined IP Ranges**: Easily select from existing IP ranges of Cloudflare, Gcore, or Fastly.
 - **Bulk Config Generation**: Generates configurations for all specified IP addresses with a single click.
 - **User-Friendly Interface**: Simple and intuitive design requiring no installation.
 - **Export Options**: Save all generated configurations to a file.
@@ -64,7 +64,7 @@ This web-based version is fully functional and allows you to generate and downlo
 #### Option B: Use Predefined IP Ranges
 
 - **Cloudflare IP Ranges**: Select to use Cloudflare's IP addresses.
-- **G-Core IP Ranges**: Choose G-Core's IP addresses.
+- **Gcore IP Ranges**: Choose Gcore's IP addresses.
 - **Fastly IP Ranges**: Opt for Fastly's IP addresses.
 
 ### Step 3: Generate Configurations

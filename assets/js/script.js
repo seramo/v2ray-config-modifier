@@ -110,12 +110,12 @@ function generateConfigs() {
     const inputConfig = document.getElementById('inputConfig').value;
 
     if (!inputConfig) {
-        showWarning('لطفا کانفیگ را وارد کنید.');
+        showWarning('Please enter the config.');
         return;
     }
 
     if (!isValidConfigFormat(inputConfig)) {
-        showWarning('کانفیگ وارد شده معتبر نیست.');
+        showWarning('The entered config is invalid.');
         return;
     }
 
@@ -132,13 +132,13 @@ function modifyConfigsFromCIDR() {
     const outputCount = document.getElementById('outputCount').value;
 
     if (ipRanges.length === 0) {
-        showWarning('لطفا حداقل یک رنج آی پی را وارد کنید.');
+        showWarning('Please enter at least one IP range.');
         return;
     }
 
     for (const ipRange of ipRanges) {
         if (!isValidCIDR(ipRange.trim())) {
-            showWarning(`لطفا یک رنج آی پی معتبر وارد کنید: ${ipRange}`);
+            showWarning(`Please enter a valid IP range: ${ipRange}`);
             return;
         }
     }
@@ -171,7 +171,7 @@ function modifyConfigsFromList() {
     const ipList = document.getElementById('ipList').value.trim().split('\n').filter(ip => ip.trim() !== '');
 
     if (ipList.length === 0) {
-        showWarning('لطفا لیست آی پی‌ را وارد کنید.');
+        showWarning('Please enter the IP list.');
         return;
     }
 
@@ -182,7 +182,7 @@ function modifyConfigsFromList() {
         if (ipaddr.isValid(ipStr)) {
             generatedOutput += replaceIPInConfig(inputConfig, ipaddr.parse(ipStr));
         } else {
-            showWarning(`آی پی نامعتبر یافت شد: ${ipStr}`);
+            showWarning(`Invalid IP found: ${ipStr}`);
             return;
         }
     }
@@ -214,11 +214,11 @@ function displayResult(count) {
     const downloadButton = document.getElementById('downloadButton');
 
     if (generatedOutput) {
-        showSuccess(`تولید ${count} کانفیگ با موفقیت انجام شد.`);
+        showSuccess(`Successfully generated ${count} configs.`);
         copyButton.style.display = 'inline-block';
         downloadButton.style.display = 'inline-block';
     } else {
-        showError('هیچ کانفیگی تولید نشد.');
+        showError('No configs were generated.');
         copyButton.style.display = 'none';
         downloadButton.style.display = 'none';
     }
@@ -230,14 +230,14 @@ async function loadIPRanges(service) {
     try {
         const response = await fetch(url);
         if (!response.ok) {
-            throw new Error(`خطا در دریافت داده‌ها: ${response.statusText}`);
+            throw new Error(`Error retrieving data: ${response.statusText}`);
         }
 
         const data = await response.json();
         const ipRanges = data.ipv4 || [];
 
         if (ipRanges.length === 0) {
-            showWarning('رنج آی پی موردنظر یافت نشد.');
+            showWarning('No IP range found.');
             return;
         }
 
@@ -249,17 +249,17 @@ async function loadIPRanges(service) {
         }
     } catch (error) {
         console.error(error);
-        showError('خطایی در بارگیری آی‌پی‌ها رخ داد.');
+        showError('An error occurred while loading IPs.');
     }
 }
 
 function copyToClipboard() {
     if (generatedOutput) {
         navigator.clipboard.writeText(generatedOutput.replace(/\n\n/g, '\n').trimEnd()).then(() => {
-            showSuccess('کانفیگ‌ها در کلیپ‌بورد ذخیره شدند.');
+            showSuccess('Configs have been saved to clipboard.');
         }).catch(err => {
             console.error(err);
-            showError('خطا در کپی: ' + err);
+            showError('Copy error: ' + err);
         });
     }
 }
