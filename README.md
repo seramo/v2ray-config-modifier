@@ -87,3 +87,7 @@ You can combine custom IP ranges with predefined ranges.
 Here's a quick tutorial on how to use the **V2Ray Config Modifier**:
 
 [![V2Ray Config Modifier Tutorial](https://img.youtube.com/vi/J9g1kbdW8Oc/0.jpg)](https://youtu.be/J9g1kbdW8Oc)
+
+## Contribution
+
+Contributions and updates are welcome. Please submit changes via a Pull Request.
