@@ -34,7 +34,7 @@
 
         <div class="col-12">
             <label for="inputConfig" class="form-label">Config</label>
-            <input type="text" id="inputConfig" class="form-control" placeholder="vless or vmess" dir="ltr">
+            <input type="text" id="inputConfig" class="form-control" placeholder="vless or vmess">
         </div>
 
         <div class="col-12 mt-3">
@@ -50,14 +50,14 @@
             <button onclick="loadIPRanges('cloudflare')" class="badge bg-cloudflare border-0 ms-1">Cloudflare</button>
             <button onclick="loadIPRanges('gcore')" class="badge bg-gcore border-0 ms-1">Gcore</button>
             <button onclick="loadIPRanges('fastly')" class="badge bg-fastly border-0 ms-1">Fastly</button>
-            <textarea id="ipRange" class="form-control" rows="4" placeholder="Each IP range on a new line" dir="ltr"></textarea>
+            <textarea id="ipRange" class="form-control" rows="4" placeholder="Each IP range on a new line"></textarea>
             <label for="outputCount" class="form-label mt-3">Number of outputs: <span id="outputCountValue">5000</span></label>
             <input type="range" class="form-range" min="1000" max="50000" step="1000" id="outputCount" value="5000" oninput="updateOutputCountValue()">
         </div>
 
         <div class="col-12 mt-3" id="listFields" style="display: none;">
             <label for="ipList" class="form-label">IP List</label>
-            <textarea id="ipList" class="form-control" rows="8" placeholder="Each IP on a new line" dir="ltr"></textarea>
+            <textarea id="ipList" class="form-control" rows="8" placeholder="Each IP on a new line"></textarea>
         </div>
 
         <div class="col-12 mt-4">
