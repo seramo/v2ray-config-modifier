@@ -49,13 +49,18 @@ function toggleInputFields() {
     const inputType = document.getElementById('inputType').value;
     const cidrFields = document.getElementById('cidrFields');
     const listFields = document.getElementById('listFields');
+    const configListFields = document.getElementById('configListFields');
+
+    cidrFields.style.display = 'none';
+    listFields.style.display = 'none';
+    configListFields.style.display = 'none';
 
     if (inputType === 'cidr') {
         cidrFields.style.display = 'block';
-        listFields.style.display = 'none';
-    } else {
-        cidrFields.style.display = 'none';
+    } else if (inputType === 'list') {
         listFields.style.display = 'block';
+    } else if (inputType === 'configList') {
+        configListFields.style.display = 'block';
     }
 }
 
@@ -121,8 +126,10 @@ function generateConfigs() {
 
     if (inputType === 'cidr') {
         modifyConfigsFromCIDR();
-    } else {
+    } else if (inputType === 'list') {
         modifyConfigsFromList();
+    } else if (inputType === 'configList') {
+        modifyConfigsFromConfigsList();
     }
 }
 
@@ -176,34 +183,79 @@ function modifyConfigsFromList() {
     }
 
     generatedOutput = '';
+    let count = 0;
 
     for (const ip of ipList) {
         let ipStr = ip.trim();
         if (ipaddr.isValid(ipStr)) {
             generatedOutput += replaceIPInConfig(inputConfig, ipaddr.parse(ipStr));
+            count++;
         } else {
             showWarning(`Invalid IP found: ${ipStr}`);
             return;
         }
     }
 
-    displayResult(ipList.length);
+    displayResult(count);
 }
 
-function replaceIPInConfig(inputConfig, ip) {
+function modifyConfigsFromConfigsList() {
+    const inputConfig = document.getElementById('inputConfig').value;
+    const configList = document.getElementById('configList').value.trim().split('\n').filter(config => config.trim() !== '');
+
+    if (configList.length === 0) {
+        showWarning('Please enter the configs list.');
+        return;
+    }
+
+    generatedOutput = '';
+    let count = 0;
+
+    for (const config of configList) {
+        const address = extractAddressFromConfig(config.trim());
+        if (address) {
+            generatedOutput += replaceIPInConfig(inputConfig, address);
+            count++;
+        }
+    }
+
+    displayResult(count);
+}
+
+function extractAddressFromConfig(config) {
+    let isVmess = config.startsWith('vmess://');
+    let isVless = config.startsWith('vless://');
+
+    if (isVmess) {
+        const base64Str = config.substring(8);
+        const decodedStr = Base64.decode(base64Str);
+        const vmessConfig = JSON.parse(decodedStr);
+        return vmessConfig.add;
+    } else if (isVless) {
+        const regex = /vless:\/\/([^@]+)@([^:]+):(\d+)(\?[^#]*)?(#.*)?/;
+        const match = config.match(regex);
+        const address = match[2];
+        return address;
+    }
+
+    return null;
+}
+
+function replaceIPInConfig(inputConfig, ipOrAddress) {
     let isVmess = inputConfig.startsWith('vmess://');
-    let ipStr = ip.toString();
+    let isVless = inputConfig.startsWith('vless://');
+    let addressStr = typeof ipOrAddress === 'string' ? ipOrAddress : ipOrAddress.toString();
     let result = '';
 
     if (isVmess) {
         let vmessConfig = JSON.parse(Base64.decode(inputConfig.replace('vmess://', '')));
-        vmessConfig.add = ipStr;
+        vmessConfig.add = addressStr;
         result = `vmess://${Base64.encode(JSON.stringify(vmessConfig))}\n\n`;
-    } else {
-        ipStr = ip.kind() === 'ipv6' ? `[${ipStr}]` : ipStr;
+    } else if (isVless) {
+        addressStr = addressStr.includes(':') && !addressStr.startsWith('[') ? `[${addressStr}]` : addressStr;
         const match = inputConfig.match(/^(vless:\/\/[^@]+)@([^:]+)(:.+)$/);
         const [_, start, domain, end] = match;
-        result = `${start}@${ipStr}${end}\n\n`;
+        result = `${start}@${addressStr}${end}\n\n`;
     }
 
     return result;

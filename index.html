@@ -42,6 +42,7 @@
             <select id="inputType" class="form-control" onchange="toggleInputFields()">
                 <option value="cidr">IP Ranges</option>
                 <option value="list">IP List</option>
+                <option value="configList">Configs List</option>
             </select>
         </div>
 
@@ -58,6 +59,11 @@
         <div class="col-12 mt-3" id="listFields" style="display: none;">
             <label for="ipList" class="form-label">IP List</label>
             <textarea id="ipList" class="form-control" rows="8" placeholder="Each IP on a new line"></textarea>
+        </div>
+
+        <div class="col-12 mt-3" id="configListFields" style="display: none;">
+            <label for="configList" class="form-label">Configs List</label>
+            <textarea id="configList" class="form-control" rows="8" placeholder="Each config on a new line"></textarea>
         </div>
 
         <div class="col-12 mt-4">
