@@ -11,7 +11,8 @@ The **V2Ray Config Modifier** is an HTML and JavaScript-based application design
 - **VLESS and VMESS Support**: Accepts both VLESS and VMESS configurations as input.
 - **IP Range Input**: Users can enter custom IP addresses or ranges.
 - **Predefined IP Ranges**: Easily select from existing IP ranges of Cloudflare, Gcore, or Fastly.
-- **Bulk Config Generation**: Generates configurations for all specified IP addresses with a single click.
+- **Config List Support**: Users can input a list of existing VLESS or VMESS configurations, and the tool will extract the IP address from each and generate new configurations based on a base config.
+- **Bulk Config Generation**: Generates configurations for all specified IP addresses or configurations with a single click.
 - **User-Friendly Interface**: Simple and intuitive design requiring no installation.
 - **Export Options**: Save all generated configurations to a file.
 
@@ -54,7 +55,7 @@ This web-based version is fully functional and allows you to generate and downlo
 
 - **Paste Configuration**: Copy and paste your existing VLESS or VMESS configuration.
 
-### Step 2: Select IP Addresses
+### Step 2: Select IP Addresses or Configs
 
 #### Option A: Enter Custom IP Range
 
@@ -67,6 +68,10 @@ This web-based version is fully functional and allows you to generate and downlo
 - **Gcore IP Ranges**: Choose Gcore's IP addresses.
 - **Fastly IP Ranges**: Opt for Fastly's IP addresses.
 
+#### Option C: Enter a List of Configs
+
+- **Config List**: Paste a list of existing VLESS or VMESS configurations. The tool will extract the IP address from each config and use them to generate new configurations based on the provided base config.
+
 #### Note
 
 You can combine custom IP ranges with predefined ranges.
@@ -74,7 +79,7 @@ You can combine custom IP ranges with predefined ranges.
 ### Step 3: Generate Configurations
 
 - Click the **"Generate Configs"** button.
-- The tool will process the base configuration and replace the IP address field with each IP from the specified ranges.
+- The tool will process the base configuration and replace the IP address field with each IP from the specified ranges or config list.
 - The generated configurations will be available for copying or downloading.
 
 ### Step 4: Export Configurations
