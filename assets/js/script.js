@@ -101,13 +101,24 @@ function incrementIP(ip) {
 }
 
 function isValidConfigFormat(inputConfig) {
-    if (inputConfig.startsWith('vmess://')) {
+    if (inputConfig.startsWith('vmess://') || inputConfig.startsWith('vless://') ||
+        inputConfig.startsWith('wireguard://') || inputConfig.startsWith('trojan://')) {
         return true;
-    } else if (inputConfig.startsWith('vless://')) {
-        const regex = /vless:\/\/[^@]+@[^:]+:.+/;
-        return regex.test(inputConfig);
     }
     return false;
+}
+
+function detectConfigType(inputConfig) {
+    if (inputConfig.startsWith('vmess://')) {
+        return 'vmess';
+    } else if (inputConfig.startsWith('vless://')) {
+        return 'vless';
+    } else if (inputConfig.startsWith('wireguard://')) {
+        return 'wireguard';
+    } else if (inputConfig.startsWith('trojan://')) {
+        return 'trojan';
+    }
+    return null;
 }
 
 function generateConfigs() {
@@ -223,39 +234,51 @@ function modifyConfigsFromConfigsList() {
 }
 
 function extractAddressFromConfig(config) {
-    let isVmess = config.startsWith('vmess://');
-    let isVless = config.startsWith('vless://');
+    let configType = detectConfigType(config);
 
-    if (isVmess) {
+    if (configType === 'vmess') {
         const base64Str = config.substring(8);
         const decodedStr = Base64.decode(base64Str);
         const vmessConfig = JSON.parse(decodedStr);
         return vmessConfig.add;
-    } else if (isVless) {
+    } else if (configType === 'vless') {
         const regex = /vless:\/\/([^@]+)@([^:]+):(\d+)(\?[^#]*)?(#.*)?/;
         const match = config.match(regex);
         const address = match[2];
         return address;
+    } else if (configType === 'wireguard') {
+        const regex = /wireguard:\/\/[^@]+@([^:]+):.+/;
+        const match = config.match(regex);
+        return match[1];
+    } else if (configType === 'trojan') {
+        const regex = /trojan:\/\/[^@]+@([^:]+):.+/;
+        const match = config.match(regex);
+        return match[1];
     }
 
     return null;
 }
 
 function replaceIPInConfig(inputConfig, ipOrAddress) {
-    let isVmess = inputConfig.startsWith('vmess://');
-    let isVless = inputConfig.startsWith('vless://');
+    let configType = detectConfigType(inputConfig);
     let addressStr = typeof ipOrAddress === 'string' ? ipOrAddress : ipOrAddress.toString();
     let result = '';
 
-    if (isVmess) {
+    if (configType === 'vmess') {
         let vmessConfig = JSON.parse(Base64.decode(inputConfig.replace('vmess://', '')));
         vmessConfig.add = addressStr;
         result = `vmess://${Base64.encode(JSON.stringify(vmessConfig))}\n\n`;
-    } else if (isVless) {
+    } else if (configType === 'vless') {
         addressStr = addressStr.includes(':') && !addressStr.startsWith('[') ? `[${addressStr}]` : addressStr;
         const match = inputConfig.match(/^(vless:\/\/[^@]+)@([^:]+)(:.+)$/);
         const [_, start, domain, end] = match;
         result = `${start}@${addressStr}${end}\n\n`;
+    } else if (configType === 'wireguard') {
+        const regex = /^(wireguard:\/\/[^@]+@)[^:]+(:.+)$/;
+        result = inputConfig.replace(regex, `$1${addressStr}$2\n\n`);
+    } else if (configType === 'trojan') {
+        const regex = /^(trojan:\/\/[^@]+@)[^:]+(:.+)$/;
+        result = inputConfig.replace(regex, `$1${addressStr}$2\n\n`);
     }
 
     return result;
