@@ -1,27 +1,27 @@
 # V2Ray Config Modifier
 
-A web-based tool to generate V2Ray configurations for multiple IP addresses or ranges, simplifying the process of creating configs for VLESS or VMESS protocols.
+A web-based tool to generate V2Ray configurations for multiple IP addresses or ranges, supporting VMESS, VLESS, WireGuard, and Trojan protocols.
 
 ## Description
 
-The **V2Ray Config Modifier** is an HTML and JavaScript-based application designed to help users generate multiple V2Ray configurations efficiently. Users can enter an existing VLESS or VMESS configuration, specify an IP address or range, or choose from predefined IP ranges of popular CDN providers like Cloudflare, Gcore, and Fastly. The tool then generates new configurations for each IP address in the specified range.
+The **V2Ray Config Modifier** is an HTML and JavaScript-based application designed to help users generate multiple V2Ray configurations efficiently. Users can input existing VMESS, VLESS, WireGuard, or Trojan configurations, specify IP addresses or ranges, or choose from predefined IP ranges of popular CDN providers like Cloudflare, Gcore, and Fastly. The tool generates new configurations for each IP address or range.
 
 ## Features
 
-- **VLESS and VMESS Support**: Accepts both VLESS and VMESS configurations as input.
-- **IP Range Input**: Users can enter custom IP addresses or ranges.
+- **VMESS, VLESS, WireGuard, and Trojan Support**: Accepts VMESS, VLESS, WireGuard, and Trojan configurations as input.
+- **IP Range Input**: Users can enter custom IP addresses or ranges in CIDR format.
 - **Predefined IP Ranges**: Easily select from existing IP ranges of Cloudflare, Gcore, or Fastly.
-- **Config List Support**: Users can input a list of existing VLESS or VMESS configurations, and the tool will extract the IP address from each and generate new configurations based on a base config.
-- **Bulk Config Generation**: Generates configurations for all specified IP addresses or configurations with a single click.
-- **User-Friendly Interface**: Simple and intuitive design requiring no installation.
-- **Export Options**: Save all generated configurations to a file.
+- **Config List Support**: Paste a list of VMESS, VLESS, WireGuard, or Trojan configurations and generate new ones based on a base config.
+- **Bulk Config Generation**: Generates configurations for all specified IP addresses or configurations in one click.
+- **User-Friendly Interface**: Simple design with no installation needed.
+- **Export Options**: Save generated configurations to a file or copy to the clipboard.
 
 ## Getting Started
 
 ### Prerequisites
 
 - A modern web browser (Chrome, Firefox, Edge, Safari, etc.).
-- An existing VLESS or VMESS configuration to use as a base.
+- An existing VMESS, VLESS, WireGuard, or Trojan configuration to use as a base.
 - Basic understanding of V2Ray configurations and IP addressing.
 
 ### Installation
@@ -53,7 +53,7 @@ This web-based version is fully functional and allows you to generate and downlo
 
 ### Step 1: Input Base Configuration
 
-- **Paste Configuration**: Copy and paste your existing VLESS or VMESS configuration.
+- **Paste Configuration**: Copy and paste your existing VMESS, VLESS, WireGuard, or Trojan configuration.
 
 ### Step 2: Select IP Addresses or Configs
 
@@ -70,16 +70,16 @@ This web-based version is fully functional and allows you to generate and downlo
 
 #### Option C: Enter a List of Configs
 
-- **Config List**: Paste a list of existing VLESS or VMESS configurations. The tool will extract the IP address from each config and use them to generate new configurations based on the provided base config.
+- **Config List**: Paste a list of existing VMESS, VLESS, WireGuard, or Trojan configurations. The tool will extract the IP address from each configuration and use them to generate new configurations based on the provided base config.
 
 #### Note
 
-You can combine custom IP ranges with predefined ranges.
+You can combine custom IP ranges with predefined ranges for more flexibility.
 
 ### Step 3: Generate Configurations
 
 - Click the **"Generate Configs"** button.
-- The tool will process the base configuration and replace the IP address field with each IP from the specified ranges or config list.
+- The tool processes the base configuration and replaces the IP address with each IP from the specified ranges or config list.
 - The generated configurations will be available for copying or downloading.
 
 ### Step 4: Export Configurations
