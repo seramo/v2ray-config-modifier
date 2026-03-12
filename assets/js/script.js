@@ -123,31 +123,32 @@ function detectConfigType(inputConfig) {
 
 function generateConfigs() {
     const inputType = document.getElementById('inputType').value;
-    const inputConfig = document.getElementById('inputConfig').value;
+    const rawInput = document.getElementById('inputConfig').value.trim();
 
-    if (!inputConfig) {
+    if (!rawInput) {
         showWarning('Please enter the config.');
         return;
     }
 
-    if (!isValidConfigFormat(inputConfig)) {
-        showWarning('The entered config is invalid.');
+    const baseConfigs = rawInput.split('\n').filter(c => isValidConfigFormat(c.trim()));
+
+    if (baseConfigs.length === 0) {
+        showWarning('No valid base configs found.');
         return;
     }
 
     if (inputType === 'cidr') {
-        modifyConfigsFromCIDR();
+        modifyConfigsFromCIDR(baseConfigs);
     } else if (inputType === 'list') {
-        modifyConfigsFromList();
+        modifyConfigsFromList(baseConfigs);
     } else if (inputType === 'configList') {
-        modifyConfigsFromConfigsList();
+        modifyConfigsFromConfigsList(baseConfigs);
     }
 }
 
-function modifyConfigsFromCIDR() {
-    const inputConfig = document.getElementById('inputConfig').value;
+function modifyConfigsFromCIDR(baseConfigs) {
     const ipRanges = document.getElementById('ipRange').value.trim().split('\n').filter(range => range.trim() !== '');
-    const outputCount = document.getElementById('outputCount').value;
+    const outputCount = parseInt(document.getElementById('outputCount').value);
 
     if (ipRanges.length === 0) {
         showWarning('Please enter at least one IP range.');
@@ -164,28 +165,27 @@ function modifyConfigsFromCIDR() {
     generatedOutput = '';
     let count = 0;
 
-    for (const ipRange of ipRanges) {
-        const [ip, range] = ipaddr.parseCIDR(ipRange.trim());
-        const ipType = ip.kind();
+    for (const config of baseConfigs) {
+        if (count >= outputCount) break;
 
-        let currentIp = ip;
-        while (currentIp.match(ipaddr.parseCIDR(ipRange.trim())) && count < parseInt(outputCount)) {
-            generatedOutput += replaceIPInConfig(inputConfig, currentIp);
-            count++;
+        for (const ipRange of ipRanges) {
+            const [ip, range] = ipaddr.parseCIDR(ipRange.trim());
+            let currentIp = ip;
 
-            if (count >= parseInt(outputCount)) {
-                break;
+            while (currentIp.match(ipaddr.parseCIDR(ipRange.trim())) && count < outputCount) {
+                generatedOutput += replaceIPInConfig(config.trim(), currentIp);
+                count++;
+                currentIp = incrementIP(currentIp);
             }
 
-            currentIp = incrementIP(currentIp);
+            if (count >= outputCount) break;
         }
     }
 
     displayResult(count);
 }
 
-function modifyConfigsFromList() {
-    const inputConfig = document.getElementById('inputConfig').value;
+function modifyConfigsFromList(baseConfigs) {
     const ipList = document.getElementById('ipList').value.trim().split('\n').filter(ip => ip.trim() !== '');
 
     if (ipList.length === 0) {
@@ -196,22 +196,20 @@ function modifyConfigsFromList() {
     generatedOutput = '';
     let count = 0;
 
-    for (const ip of ipList) {
-        let ipStr = ip.trim();
-        if (ipaddr.isValid(ipStr)) {
-            generatedOutput += replaceIPInConfig(inputConfig, ipaddr.parse(ipStr));
-            count++;
-        } else {
-            showWarning(`Invalid IP found: ${ipStr}`);
-            return;
+    for (const config of baseConfigs) {
+        for (const ip of ipList) {
+            let ipStr = ip.trim();
+            if (ipaddr.isValid(ipStr)) {
+                generatedOutput += replaceIPInConfig(config.trim(), ipaddr.parse(ipStr));
+                count++;
+            }
         }
     }
 
     displayResult(count);
 }
 
-function modifyConfigsFromConfigsList() {
-    const inputConfig = document.getElementById('inputConfig').value;
+function modifyConfigsFromConfigsList(baseConfigs) {
     const configList = document.getElementById('configList').value.trim().split('\n').filter(config => config.trim() !== '');
 
     if (configList.length === 0) {
@@ -222,11 +220,13 @@ function modifyConfigsFromConfigsList() {
     generatedOutput = '';
     let count = 0;
 
-    for (const config of configList) {
-        const address = extractAddressFromConfig(config.trim());
-        if (address) {
-            generatedOutput += replaceIPInConfig(inputConfig, address);
-            count++;
+    for (const baseConfig of baseConfigs) {
+        for (const targetConfig of configList) {
+            const address = extractAddressFromConfig(targetConfig.trim());
+            if (address) {
+                generatedOutput += replaceIPInConfig(baseConfig.trim(), address);
+                count++;
+            }
         }
     }
 
