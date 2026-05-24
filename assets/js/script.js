@@ -50,10 +50,12 @@ function toggleInputFields() {
     const cidrFields = document.getElementById('cidrFields');
     const listFields = document.getElementById('listFields');
     const configListFields = document.getElementById('configListFields');
+    const sniSpoofFields = document.getElementById('sniSpoofFields');
 
     cidrFields.style.display = 'none';
     listFields.style.display = 'none';
     configListFields.style.display = 'none';
+    sniSpoofFields.style.display = 'none';
 
     if (inputType === 'cidr') {
         cidrFields.style.display = 'block';
@@ -61,6 +63,8 @@ function toggleInputFields() {
         listFields.style.display = 'block';
     } else if (inputType === 'configList') {
         configListFields.style.display = 'block';
+    } else if (inputType === 'sniSpoof') {
+        sniSpoofFields.style.display = 'block';
     }
 }
 
@@ -143,6 +147,8 @@ function generateConfigs() {
         modifyConfigsFromList(baseConfigs);
     } else if (inputType === 'configList') {
         modifyConfigsFromConfigsList(baseConfigs);
+    } else if (inputType === 'sniSpoof') {
+        modifyConfigsFromSNISpoof(baseConfigs);
     }
 }
 
@@ -173,7 +179,7 @@ function modifyConfigsFromCIDR(baseConfigs) {
             let currentIp = ip;
 
             while (currentIp.match(ipaddr.parseCIDR(ipRange.trim())) && count < outputCount) {
-                generatedOutput += replaceIPInConfig(config.trim(), currentIp);
+                generatedOutput += replaceIPAndPortInConfig(config.trim(), currentIp);
                 count++;
                 currentIp = incrementIP(currentIp);
             }
@@ -200,7 +206,7 @@ function modifyConfigsFromList(baseConfigs) {
         for (const ip of ipList) {
             let ipStr = ip.trim();
             if (ipaddr.isValid(ipStr)) {
-                generatedOutput += replaceIPInConfig(config.trim(), ipaddr.parse(ipStr));
+                generatedOutput += replaceIPAndPortInConfig(config.trim(), ipaddr.parse(ipStr));
                 count++;
             }
         }
@@ -224,10 +230,30 @@ function modifyConfigsFromConfigsList(baseConfigs) {
         for (const targetConfig of configList) {
             const address = extractAddressFromConfig(targetConfig.trim());
             if (address) {
-                generatedOutput += replaceIPInConfig(baseConfig.trim(), address);
+                generatedOutput += replaceIPAndPortInConfig(baseConfig.trim(), address);
                 count++;
             }
         }
+    }
+
+    displayResult(count);
+}
+
+function modifyConfigsFromSNISpoof(baseConfigs) {
+    const spoofIp = document.getElementById('spoofIp').value.trim();
+    const spoofPort = document.getElementById('spoofPort').value.trim();
+
+    if (!spoofIp || !spoofPort) {
+        showWarning('Please enter both Spoof IP and Port.');
+        return;
+    }
+
+    generatedOutput = '';
+    let count = 0;
+
+    for (const config of baseConfigs) {
+        generatedOutput += replaceIPAndPortInConfig(config.trim(), spoofIp, spoofPort);
+        count++;
     }
 
     displayResult(count);
@@ -259,7 +285,7 @@ function extractAddressFromConfig(config) {
     return null;
 }
 
-function replaceIPInConfig(inputConfig, ipOrAddress) {
+function replaceIPAndPortInConfig(inputConfig, ipOrAddress, newPort = null) {
     let configType = detectConfigType(inputConfig);
     let addressStr = typeof ipOrAddress === 'string' ? ipOrAddress : ipOrAddress.toString();
     let result = '';
@@ -267,18 +293,19 @@ function replaceIPInConfig(inputConfig, ipOrAddress) {
     if (configType === 'vmess') {
         let vmessConfig = JSON.parse(Base64.decode(inputConfig.replace('vmess://', '')));
         vmessConfig.add = addressStr;
+        if (newPort) vmessConfig.port = parseInt(newPort);
         result = `vmess://${Base64.encode(JSON.stringify(vmessConfig))}\n\n`;
     } else if (configType === 'vless') {
         addressStr = addressStr.includes(':') && !addressStr.startsWith('[') ? `[${addressStr}]` : addressStr;
-        const match = inputConfig.match(/^(vless:\/\/[^@]+)@([^:]+)(:.+)$/);
-        const [_, start, domain, end] = match;
-        result = `${start}@${addressStr}${end}\n\n`;
+        const match = inputConfig.match(/^(vless:\/\/[^@]+)@([^:]+):(\d+)(.*)$/);
+        const [_, start, domain, port, end] = match;
+        result = `${start}@${addressStr}:${newPort || port}${end}\n\n`;
     } else if (configType === 'wireguard') {
-        const regex = /^(wireguard:\/\/[^@]+@)[^:]+(:.+)$/;
-        result = inputConfig.replace(regex, `$1${addressStr}$2\n\n`);
+        const regex = /^(wireguard:\/\/[^@]+@)[^:]+:(\d+)(.*)$/;
+        result = inputConfig.replace(regex, (m, p1, p2, p3) => `${p1}${addressStr}:${newPort || p2}${p3}\n\n`);
     } else if (configType === 'trojan') {
-        const regex = /^(trojan:\/\/[^@]+@)[^:]+(:.+)$/;
-        result = inputConfig.replace(regex, `$1${addressStr}$2\n\n`);
+        const regex = /^(trojan:\/\/[^@]+@)[^:]+:(\d+)(.*)$/;
+        result = inputConfig.replace(regex, (m, p1, p2, p3) => `${p1}${addressStr}:${newPort || p2}${p3}\n\n`);
     }
 
     return result;

@@ -42,6 +42,7 @@
                 <option value="cidr">IP Ranges</option>
                 <option value="list">IP List</option>
                 <option value="configList">Configs List</option>
+                <option value="sniSpoof">SNI Spoof</option>
             </select>
         </div>
 
@@ -63,6 +64,19 @@
         <div class="col-12 mt-3" id="configListFields" style="display: none;">
             <label for="configList" class="form-label">Configs List</label>
             <textarea id="configList" class="form-control" rows="8" placeholder="Each config on a new line"></textarea>
+        </div>
+
+        <div class="col-12 mt-3" id="sniSpoofFields" style="display: none;">
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="spoofIp" class="form-label">Spoof IP</label>
+                    <input type="text" id="spoofIp" class="form-control" value="127.0.0.1" placeholder="e.g. 127.0.0.1">
+                </div>
+                <div class="col-md-6 mt-3 mt-md-0">
+                    <label for="spoofPort" class="form-label">Spoof Port</label>
+                    <input type="number" id="spoofPort" class="form-control" value="40443" placeholder="e.g. 40443">
+                </div>
+            </div>
         </div>
 
         <div class="col-12 mt-4">
