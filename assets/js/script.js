@@ -192,10 +192,20 @@ function modifyConfigsFromCIDR(baseConfigs) {
 }
 
 function modifyConfigsFromList(baseConfigs) {
-    const ipList = document.getElementById('ipList').value.trim().split('\n').filter(ip => ip.trim() !== '');
+    const rawText = document.getElementById('ipList').value.trim();
 
-    if (ipList.length === 0) {
+    if (rawText.length === 0) {
         showWarning('Please enter the IP list.');
+        return;
+    }
+
+    const ipv4Matches = rawText.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g) || [];
+    const ipv6Matches = rawText.match(/(?:[a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}|(?:[a-fA-F0-9]{1,4}:)*:[a-fA-F0-9]{1,4}(?::[a-fA-F0-9]{1,4})*/g) || [];
+    const allMatches = [...ipv4Matches, ...ipv6Matches];
+    const validIpList = [...new Set(allMatches)].filter(ip => ipaddr.isValid(ip));
+
+    if (validIpList.length === 0) {
+        showWarning('No valid IPs found in the input.');
         return;
     }
 
@@ -203,12 +213,9 @@ function modifyConfigsFromList(baseConfigs) {
     let count = 0;
 
     for (const config of baseConfigs) {
-        for (const ip of ipList) {
-            let ipStr = ip.trim();
-            if (ipaddr.isValid(ipStr)) {
-                generatedOutput += replaceIPAndPortInConfig(config.trim(), ipaddr.parse(ipStr));
-                count++;
-            }
+        for (const ip of validIpList) {
+            generatedOutput += replaceIPAndPortInConfig(config.trim(), ipaddr.parse(ip));
+            count++;
         }
     }
 
