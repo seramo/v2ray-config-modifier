@@ -2,6 +2,8 @@
 
 [فارسی (Persian)](README.fa.md)
 
+> **Acknowledgements & Credits:** This project is an extended fork of the original [V2Ray Config Modifier](https://github.com/seramo/v2ray-config-modifier) created by **[seramo](https://github.com/seramo)**. Huge thanks to seramo for building this fantastic foundation and core tool!
+
 A web-based tool to generate and modify configurations for multiple IP addresses or ranges, supporting VMESS, VLESS, WireGuard, Trojan, Shadowsocks, Hysteria (v1/v2), and TUIC protocols.
 
 ## 📑 Table of Contents
