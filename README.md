@@ -11,6 +11,7 @@ A web-based tool to generate and modify configurations for multiple IP addresses
 - [Accessing the Application Online](#accessing-the-application-online)
 - [Usage](#usage)
 - [Tutorial Video](#tutorial-video)
+- [Acknowledgements & Credits](#acknowledgements--credits)
 - [Contribution](#contribution)
 
 The **V2Ray Config Modifier** is an HTML and JavaScript-based application designed to help users generate multiple configurations efficiently. Users can input existing configurations, specify IP addresses or ranges, or choose from predefined IP ranges of popular CDN providers like Cloudflare, Gcore, and Fastly. The tool generates new configurations for each IP address or range with advanced export, inspection, and formatting options.
@@ -108,6 +109,10 @@ You can combine custom IP ranges with predefined ranges for more flexibility.
 Here's a quick tutorial on how to use the **V2Ray Config Modifier**:
 
 [![V2Ray Config Modifier Tutorial](https://img.youtube.com/vi/J9g1kbdW8Oc/0.jpg)](https://youtu.be/J9g1kbdW8Oc)
+
+## Acknowledgements & Credits
+
+This project is an extended fork of the original [V2Ray Config Modifier](https://github.com/seramo/v2ray-config-modifier) created by **[seramo](https://github.com/seramo)**. Huge thanks to seramo for building this fantastic foundation and core tool!
 
 ## Contribution
 

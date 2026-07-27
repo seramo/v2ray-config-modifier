@@ -11,6 +11,7 @@
 - [راهنمای استفاده](#راهنمای-استفاده)
 - [دسترسی آنلاین](#دسترسی-آنلاین)
 - [ویدیو آموزشی](#ویدیو-آموزشی)
+- [قدردانی و تشکر (Credits)](#قدردانی-و-تشکر-credits)
 
 ---
 
@@ -65,3 +66,9 @@
 
 آموزش ویدیویی نحوه کار با ابزار:
 [![V2Ray Config Modifier Tutorial](https://img.youtube.com/vi/J9g1kbdW8Oc/0.jpg)](https://youtu.be/J9g1kbdW8Oc)
+
+---
+
+## قدردانی و تشکر (Credits)
+
+این پروژه در واقع نسخه توسعه‌یافته و انشعاب‌یافته (Fork) از پروژه اصلی **[V2Ray Config Modifier](https://github.com/seramo/v2ray-config-modifier)** است که توسط سازنده محترم **[seramo](https://github.com/seramo)** خلق شده است. صمیمانه از seramo به خاطر ساخت این پایه و ابزار فوق‌العاده سپاسگزاریم!
