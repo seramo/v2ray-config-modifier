@@ -59,7 +59,7 @@
 ## دسترسی آنلاین
 
 می‌توانید بدون نیاز به نصب هیچ‌گونه نرم‌افزاری، مستقیماً از لینک زیر به صورت آنلاین استفاده کنید:
-[https://seramo.github.io/v2ray-config-modifier/](https://seramo.github.io/v2ray-config-modifier/)
+[https://chiakorh.github.io/v2ray-config-modifier/](https://chiakorh.github.io/v2ray-config-modifier/)
 
 ## ویدیو آموزشی
 

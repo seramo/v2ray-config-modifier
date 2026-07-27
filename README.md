@@ -45,10 +45,10 @@ The **V2Ray Config Modifier** is an HTML and JavaScript-based application design
    - Clone the repository with Git:
 
      ```bash
-     git clone https://github.com/seramo/v2ray-config-modifier.git
+     git clone https://github.com/ChiakoRh/v2ray-config-modifier.git
      ```
 
-   - Or [download the ZIP file](https://github.com/seramo/v2ray-config-modifier/archive/refs/heads/main.zip) and extract it.
+   - Or [download the ZIP file](https://github.com/ChiakoRh/v2ray-config-modifier/archive/refs/heads/main.zip) and extract it.
 
 2. **Open the Application**
 
@@ -59,7 +59,7 @@ The **V2Ray Config Modifier** is an HTML and JavaScript-based application design
 
 You can use the **V2Ray Config Modifier** directly from your web browser without the need to install any software. Simply visit the following URL to access the application:
 
-[https://seramo.github.io/v2ray-config-modifier/](https://seramo.github.io/v2ray-config-modifier/)
+[https://chiakorh.github.io/v2ray-config-modifier/](https://chiakorh.github.io/v2ray-config-modifier/)
 
 This web-based version is fully functional and allows you to generate and download configurations.
 
