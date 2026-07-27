@@ -1,8 +1,17 @@
 # V2Ray Config Modifier
 
+[فارسی (Persian)](README.fa.md)
+
 A web-based tool to generate and modify configurations for multiple IP addresses or ranges, supporting VMESS, VLESS, WireGuard, Trojan, Shadowsocks, Hysteria (v1/v2), and TUIC protocols.
 
-## Description
+## 📑 Table of Contents
+- [Description](#description)
+- [Features](#features)
+- [Getting Started](#getting-started)
+- [Accessing the Application Online](#accessing-the-application-online)
+- [Usage](#usage)
+- [Tutorial Video](#tutorial-video)
+- [Contribution](#contribution)
 
 The **V2Ray Config Modifier** is an HTML and JavaScript-based application designed to help users generate multiple configurations efficiently. Users can input existing configurations, specify IP addresses or ranges, or choose from predefined IP ranges of popular CDN providers like Cloudflare, Gcore, and Fastly. The tool generates new configurations for each IP address or range with advanced export, inspection, and formatting options.
 
