@@ -1,7 +1,5 @@
 # V2Ray Config Modifier (تغییردهنده و مولد کانفیگ V2Ray)
 
-> **قدردانی و تشکر (Credits):** این پروژه در واقع نسخه توسعه‌یافته و انشعاب‌یافته (Fork) از پروژه اصلی **[V2Ray Config Modifier](https://github.com/seramo/v2ray-config-modifier)** است که توسط سازنده محترم **[seramo](https://github.com/seramo)** خلق شده است. صمیمانه از seramo به خاطر ساخت این پایه و ابزار فوق‌العاده سپاسگزاریم!
-
 یک ابزار پیشرفته تحت وب برای تولید و ویرایش دسته‌جمعی کانفیگ‌های ابزارهای دور زدن فیلترینگ با پشتیبانی کامل از پروتکل‌های مختلف.
 
 ---
@@ -13,7 +11,6 @@
 - [راهنمای استفاده](#راهنمای-استفاده)
 - [دسترسی آنلاین](#دسترسی-آنلاین)
 - [ویدیو آموزشی](#ویدیو-آموزشی)
-- [قدردانی و تشکر (Credits)](#قدردانی-و-تشکر-credits)
 
 ---
 
@@ -62,15 +59,9 @@
 ## دسترسی آنلاین
 
 می‌توانید بدون نیاز به نصب هیچ‌گونه نرم‌افزاری، مستقیماً از لینک زیر به صورت آنلاین استفاده کنید:
-[https://chiakorh.github.io/v2ray-config-modifier/](https://chiakorh.github.io/v2ray-config-modifier/)
+[https://seramo.github.io/v2ray-config-modifier/](https://seramo.github.io/v2ray-config-modifier/)
 
 ## ویدیو آموزشی
 
 آموزش ویدیویی نحوه کار با ابزار:
 [![V2Ray Config Modifier Tutorial](https://img.youtube.com/vi/J9g1kbdW8Oc/0.jpg)](https://youtu.be/J9g1kbdW8Oc)
-
----
-
-## قدردانی و تشکر (Credits)
-
-این پروژه در واقع نسخه توسعه‌یافته و انشعاب‌یافته (Fork) از پروژه اصلی **[V2Ray Config Modifier](https://github.com/seramo/v2ray-config-modifier)** است که توسط سازنده محترم **[seramo](https://github.com/seramo)** خلق شده است. صمیمانه از seramo به خاطر ساخت این پایه و ابزار فوق‌العاده سپاسگزاریم!
