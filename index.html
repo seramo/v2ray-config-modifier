@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en" dir="ltr" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,7 +13,10 @@
 <nav class="navbar navbar-expand navbar-dark bg-primary">
     <div class="container">
         <a class="navbar-brand me-0" href="https://seramo.github.io/v2ray-config-modifier/">V2Ray Config Modifier</a>
-        <ul class="navbar-nav px-0">
+        <ul class="navbar-nav px-0 align-items-center">
+            <li class="nav-item me-2">
+                <button class="btn btn-sm btn-outline-light" id="darkModeToggle" onclick="toggleDarkMode()">🌙 Dark</button>
+            </li>
             <li class="nav-item">
                 <a class="nav-link" href="https://youtu.be/J9g1kbdW8Oc/" target="_blank">Tutorial</a>
             </li>
@@ -23,7 +26,7 @@
         </ul>
     </div>
 </nav>
-<div class="container mt-5">
+<div class="container my-5">
     <div class="row">
         <div class="col-12">
             <div class="alert" role="alert" id="messageBox" style="display: none;">
@@ -33,12 +36,17 @@
 
         <div class="col-12">
             <label for="inputConfig" class="form-label">Config</label>
-            <textarea id="inputConfig" class="form-control" rows="3" placeholder="Enter VLESS, VMESS, WireGuard, or Trojan configs (one per line)"></textarea>
+            <textarea id="inputConfig" class="form-control" rows="3" placeholder="Enter VMESS, VLESS, WireGuard, Trojan, Shadowsocks, Hysteria, or TUIC configs (one per line)" oninput="saveToLocalStorage()"></textarea>
+            <button class="btn btn-sm btn-outline-secondary mt-2" onclick="inspectConfig()">🔍 Inspect Config</button>
+            <div id="inspectorBox" class="mt-2 p-3 border rounded bg-body-tertiary" style="display: none;">
+                <h6>Config Inspector Details</h6>
+                <div id="inspectorContent" class="small font-monospace"></div>
+            </div>
         </div>
 
         <div class="col-12 mt-3">
             <label for="inputType" class="form-label">Input Type</label>
-            <select id="inputType" class="form-control" onchange="toggleInputFields()">
+            <select id="inputType" class="form-control" onchange="toggleInputFields(); saveToLocalStorage();">
                 <option value="cidr">IP Ranges</option>
                 <option value="list">IP List</option>
                 <option value="configList">Configs List</option>
@@ -51,43 +59,113 @@
             <button onclick="loadIPRanges('cloudflare')" class="badge bg-cloudflare border-0 ms-1">Cloudflare</button>
             <button onclick="loadIPRanges('gcore')" class="badge bg-gcore border-0 ms-1">Gcore</button>
             <button onclick="loadIPRanges('fastly')" class="badge bg-fastly border-0 ms-1">Fastly</button>
-            <textarea id="ipRange" class="form-control" rows="4" placeholder="Each IP range on a new line"></textarea>
+            <textarea id="ipRange" class="form-control" rows="4" placeholder="Each IP range on a new line" oninput="saveToLocalStorage()"></textarea>
             <label for="outputCount" class="form-label mt-3">Number of outputs: <span id="outputCountValue">5000</span></label>
-            <input type="range" class="form-range" min="100" max="50000" step="100" id="outputCount" value="5000" oninput="updateOutputCountValue()">
+            <input type="range" class="form-range" min="100" max="50000" step="100" id="outputCount" value="5000" oninput="updateOutputCountValue(); saveToLocalStorage();">
         </div>
 
         <div class="col-12 mt-3" id="listFields" style="display: none;">
             <label for="ipList" class="form-label">IP List</label>
-            <textarea id="ipList" class="form-control" rows="8" placeholder="Each IP on a new line"></textarea>
+            <textarea id="ipList" class="form-control" rows="8" placeholder="Each IP on a new line" oninput="saveToLocalStorage()"></textarea>
         </div>
 
         <div class="col-12 mt-3" id="configListFields" style="display: none;">
             <label for="configList" class="form-label">Configs List</label>
-            <textarea id="configList" class="form-control" rows="8" placeholder="Each config on a new line"></textarea>
+            <textarea id="configList" class="form-control" rows="8" placeholder="Each config on a new line" oninput="saveToLocalStorage()"></textarea>
         </div>
 
         <div class="col-12 mt-3" id="sniSpoofFields" style="display: none;">
             <div class="row">
                 <div class="col-md-6">
                     <label for="spoofIp" class="form-label">Spoof IP</label>
-                    <input type="text" id="spoofIp" class="form-control" value="127.0.0.1" placeholder="e.g. 127.0.0.1">
+                    <input type="text" id="spoofIp" class="form-control" value="127.0.0.1" placeholder="e.g. 127.0.0.1" oninput="saveToLocalStorage()">
                 </div>
                 <div class="col-md-6 mt-3 mt-md-0">
                     <label for="spoofPort" class="form-label">Spoof Port</label>
-                    <input type="number" id="spoofPort" class="form-control" value="40443" placeholder="e.g. 40443">
+                    <input type="number" id="spoofPort" class="form-control" value="40443" placeholder="e.g. 40443" oninput="saveToLocalStorage()">
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 mt-3">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="customPortOverride" class="form-label">Custom Port Override (Optional)</label>
+                    <input type="number" id="customPortOverride" class="form-control" placeholder="Leave empty to keep original port" oninput="saveToLocalStorage()">
+                </div>
+                <div class="col-md-6 d-flex align-items-center">
+                    <div class="form-check mt-md-4">
+                        <input class="form-check-input" type="checkbox" id="shuffleOutput" onchange="saveToLocalStorage()">
+                        <label class="form-check-label" for="shuffleOutput">
+                            Shuffle Output Configs Randomly
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="col-12 mt-4">
             <button onclick="generateConfigs()" class="btn btn-primary">Generate Configs</button>
-            <button onclick="copyToClipboard()" class="btn btn-secondary px-4" id="copyButton" style="display: none;">Copy</button>
-            <button onclick="downloadOutput()" class="btn btn-success px-4" id="downloadButton" style="display: none;">Download</button>
+            <button onclick="copyToClipboard()" class="btn btn-secondary px-4 ms-2" id="copyButton" style="display: none;">Copy</button>
+            <button onclick="downloadOutput()" class="btn btn-success px-4 ms-2" id="downloadButton" style="display: none;">Download</button>
+            <button onclick="clearAll()" class="btn btn-outline-danger px-3 ms-2">Clear All</button>
+        </div>
+
+        <!-- Preview & QR Code Section -->
+        <div class="col-12 mt-5" id="previewContainer" style="display: none;">
+            <h4>Generated Configs Preview (<span id="previewCount">0</span>)</h4>
+            <div class="row mb-3">
+                <div class="col-md-4 mb-2 mb-md-0">
+                    <label for="exportFormat" class="form-label">Export Format:</label>
+                    <select id="exportFormat" class="form-select" onchange="updatePreviewFormat()">
+                        <option value="plain">Plain Text</option>
+                        <option value="clash">Clash (YAML)</option>
+                        <option value="singbox">Sing-box (JSON)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <textarea id="previewArea" class="form-control font-monospace" rows="8" readonly placeholder="Preview of generated configs will appear here..."></textarea>
+            </div>
+            <div class="row g-2 mb-3">
+                <div class="col-auto">
+                    <button class="btn btn-outline-info" onclick="copySubscriptionLink()">Copy Subscription Link (Base64)</button>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-info" onclick="showSubQRCode()">Show Sub QR Code</button>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="qrSelectIndex" class="form-label">Generate QR Code for Config #:</label>
+                <div class="input-group">
+                    <input type="number" id="qrSelectIndex" class="form-control" min="1" value="1" style="max-width: 150px;">
+                    <button class="btn btn-outline-primary" onclick="showQRCodeForSelected()">Show QR Code</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- QR Modal -->
+<div class="modal fade" id="qrModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Config QR Code</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <div id="modalQrCode" class="d-flex justify-content-center mb-3"></div>
+        <p id="modalConfigText" class="text-break small font-monospace text-muted"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="assets/js/ipaddr.min.js?v=2.0.1"></script>
 <script src="assets/js/base64.min.js?v=3.7.7"></script>
-<script src="assets/js/script.js?v=1.2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/script.js?v=1.3"></script>
 </body>
 </html>

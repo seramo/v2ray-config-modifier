@@ -1,28 +1,33 @@
 # V2Ray Config Modifier
 
-A web-based tool to generate V2Ray configurations for multiple IP addresses or ranges, supporting VMESS, VLESS, WireGuard, and Trojan protocols.
+A web-based tool to generate and modify configurations for multiple IP addresses or ranges, supporting VMESS, VLESS, WireGuard, Trojan, Shadowsocks, Hysteria (v1/v2), and TUIC protocols.
 
 ## Description
 
-The **V2Ray Config Modifier** is an HTML and JavaScript-based application designed to help users generate multiple V2Ray configurations efficiently. Users can input existing VMESS, VLESS, WireGuard, or Trojan configurations, specify IP addresses or ranges, or choose from predefined IP ranges of popular CDN providers like Cloudflare, Gcore, and Fastly. The tool generates new configurations for each IP address or range.
+The **V2Ray Config Modifier** is an HTML and JavaScript-based application designed to help users generate multiple configurations efficiently. Users can input existing configurations, specify IP addresses or ranges, or choose from predefined IP ranges of popular CDN providers like Cloudflare, Gcore, and Fastly. The tool generates new configurations for each IP address or range with advanced export, inspection, and formatting options.
 
 ## Features
 
-- **VMESS, VLESS, WireGuard, and Trojan Support**: Accepts VMESS, VLESS, WireGuard, and Trojan configurations as input.
-- **IP Range Input**: Users can enter custom IP addresses or ranges in CIDR format.
+- **Extended Protocol Support**: Accepts VMESS, VLESS, WireGuard, Trojan, Shadowsocks, Hysteria (v1/v2), and TUIC configurations as input.
+- **Config Inspector**: Inspect and analyze base configuration details instantly (Protocol, Server IP, Port, UUID, Remark, etc.).
+- **IP Range Input**: Enter custom IP addresses or ranges in CIDR format.
 - **Predefined IP Ranges**: Easily select from existing IP ranges of Cloudflare, Gcore, or Fastly.
-- **Config List Support**: Paste a list of VMESS, VLESS, WireGuard, or Trojan configurations and generate new ones based on a base config.
-- **Bulk Config Generation**: Generates configurations for all specified IP addresses or configurations in one click.
-- **User-Friendly Interface**: Simple design with no installation needed.
-- **Export Options**: Save generated configurations to a file or copy to the clipboard.
+- **Config List Support**: Paste a list of existing configurations and generate new ones based on a base config.
+- **Automatic Deduplication**: Eliminates duplicate IP addresses and configurations automatically.
+- **Advanced Export Formats**: Export or copy generated configs as Plain Text, Clash (YAML), or Sing-box (JSON).
+- **Base64 Subscription Link**: Generate and copy Base64 subscription links or view subscription QR codes.
+- **QR Code Generator**: Generate QR codes for individual configurations or subscription links.
+- **Dark Mode**: Toggle between Light and Dark themes.
+- **LocalStorage Persistence**: Automatically saves your inputs and settings across browser sessions.
+- **Custom Port Override & Shuffle**: Optionally override ports and randomly shuffle output configurations.
 
 ## Getting Started
 
 ### Prerequisites
 
 - A modern web browser (Chrome, Firefox, Edge, Safari, etc.).
-- An existing VMESS, VLESS, WireGuard, or Trojan configuration to use as a base.
-- Basic understanding of V2Ray configurations and IP addressing.
+- An existing proxy configuration to use as a base.
+- Basic understanding of configurations and IP addressing.
 
 ### Installation
 
@@ -47,13 +52,14 @@ You can use the **V2Ray Config Modifier** directly from your web browser without
 
 [https://seramo.github.io/v2ray-config-modifier/](https://seramo.github.io/v2ray-config-modifier/)
 
-This web-based version is fully functional and allows you to generate and download V2Ray configurations.
+This web-based version is fully functional and allows you to generate and download configurations.
 
 ## Usage
 
 ### Step 1: Input Base Configuration
 
-- **Paste Configuration**: Copy and paste your existing VMESS, VLESS, WireGuard, or Trojan configuration.
+- **Paste Configuration**: Copy and paste your existing VMESS, VLESS, WireGuard, Trojan, Shadowsocks, Hysteria, or TUIC configuration.
+- **Inspect Config**: Click "Inspect Config" to view parsed parameters.
 
 ### Step 2: Select IP Addresses or Configs
 
@@ -70,7 +76,7 @@ This web-based version is fully functional and allows you to generate and downlo
 
 #### Option C: Enter a List of Configs
 
-- **Config List**: Paste a list of existing VMESS, VLESS, WireGuard, or Trojan configurations. The tool will extract the IP address from each configuration and use them to generate new configurations based on the provided base config.
+- **Config List**: Paste a list of existing configurations. The tool will extract the IP address from each configuration and use them to generate new configurations based on the provided base config.
 
 #### Note
 
@@ -79,13 +85,14 @@ You can combine custom IP ranges with predefined ranges for more flexibility.
 ### Step 3: Generate Configurations
 
 - Click the **"Generate Configs"** button.
-- The tool processes the base configuration and replaces the IP address with each IP from the specified ranges or config list.
-- The generated configurations will be available for copying or downloading.
+- The tool processes the base configuration and replaces the IP address with each IP from the specified ranges or config list, removing duplicates and optionally shuffling the output.
 
-### Step 4: Export Configurations
+### Step 4: Export & Share Configurations
 
+- **Export Format**: Choose between Plain Text, Clash (YAML), or Sing-box (JSON).
 - **Copy**: Click the **"Copy"** button to copy all configurations to the clipboard.
 - **Download**: Click the **"Download"** button to save all configurations to a file.
+- **Subscription Link**: Copy Base64 subscription links or view QR codes.
 
 ## Tutorial Video
 
