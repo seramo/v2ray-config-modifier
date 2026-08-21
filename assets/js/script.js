@@ -1,5 +1,13 @@
 let generatedOutput = '';
 
+const PATTNG_ADDRESS = '188.114.97.6';
+const PATTNG_PORTS_443 = ['443', '2053', '2083', '2087', '2096', '8443'];
+const PATTNG_PORTS_8080 = ['80', '8080', '8880', '2052', '2082', '2086', '2095'];
+const PATTNG_TRANSPORTS = ['ws', 'xhttp', 'websocket', 'httpupgrade', 'grpc'];
+const PATTNG_FM_443 = decodeURIComponent('%7B%22tcp%22%3A%20%5B%7B%22type%22%3A%20%22fragment%22%2C%20%22settings%22%3A%20%7B%22packets%22%3A%20%22tlshello%22%2C%20%22lengths%22%3A%20%5B%225%22%2C%20%2294%22%2C%20%221%22%5D%2C%20%22delays%22%3A%20%5B%220%22%5D%2C%20%22maxSplit%22%3A%20%220%22%7D%7D%2C%7B%22type%22%3A%20%22fragment%22%2C%20%22settings%22%3A%20%7B%22packets%22%3A%20%221-1%22%2C%20%22lengths%22%3A%20%5B%22109%22%2C%20%221%22%5D%2C%20%22delays%22%3A%20%5B%221%22%5D%2C%20%22maxSplit%22%3A%20%22355%22%7D%7D%5D%7D');
+const PATTNG_CS_443 = decodeURIComponent('TLS_AES_256_GCM_SHA384%3ATLS_CHACHA20_POLY1305_SHA256%3ATLS_AES_128_GCM_SHA256%3ATLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384%3ATLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384%3ATLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256%3ATLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256%3ATLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256%3ATLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256%3ATLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA%3ATLS_ECDHE_RSA_WITH_AES_256_CBC_SHA%3ATLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256%3ATLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256');
+const PATTNG_FM_8080 = decodeURIComponent('%7B%22tcp%22%3A%20%5B%7B%22type%22%3A%20%22fragment%22%2C%20%22settings%22%3A%20%7B%22packets%22%3A%20%221-1%22%2C%20%22lengths%22%3A%20%5B%221%22%5D%2C%20%22delays%22%3A%20%5B%224%22%5D%2C%20%22maxSplit%22%3A%20%22522%22%7D%7D%5D%7D');
+
 function showMessage(message, type) {
     const messageBox = document.getElementById('messageBox');
     const messageText = document.getElementById('messageText');
@@ -149,6 +157,78 @@ function generateConfigs() {
         modifyConfigsFromConfigsList(baseConfigs);
     } else if (inputType === 'sniSpoof') {
         modifyConfigsFromSNISpoof(baseConfigs);
+    } else if (inputType === 'pattng') {
+        modifyConfigsForPattNG(baseConfigs);
+    }
+}
+
+function modifyConfigsForPattNG(baseConfigs) {
+    const configs = [...new Set(baseConfigs.map(config => transformPattNGConfig(config.trim())).filter(Boolean))];
+
+    generatedOutput = configs.length ? `${configs.join('\n\n')}\n\n` : '';
+    displayResult(configs.length);
+}
+
+function transformPattNGConfig(config) {
+    const configType = detectConfigType(config);
+    if (configType !== 'vless' && configType !== 'trojan') return '';
+
+    let node;
+    try {
+        node = new URL(config);
+    } catch (error) {
+        return '';
+    }
+
+    const security = getPattNGParam(node, 'security').toLowerCase();
+    const transport = getPattNGParam(node, 'type').toLowerCase();
+    const host = getPattNGParam(node, 'host');
+    const tls = security === 'tls';
+
+    if (!['', 'tls', 'none'].includes(security)) return '';
+    if (!PATTNG_TRANSPORTS.includes(transport) || !host.trim()) return '';
+    if (tls && !PATTNG_PORTS_443.includes(node.port)) return '';
+    if (!tls && !PATTNG_PORTS_8080.includes(node.port)) return '';
+
+    node.hostname = PATTNG_ADDRESS;
+    node.port = tls ? '443' : '8080';
+
+    for (const key of [...node.searchParams.keys()]) {
+        if (['allowinsecure', 'allow_insecure', 'insecure'].includes(key.toLowerCase())) {
+            node.searchParams.delete(key);
+        }
+    }
+
+    if (tls) {
+        setPattNGParam(node, 'fp', 'unsafe');
+        setPattNGParam(node, 'fm', PATTNG_FM_443);
+        setPattNGParam(node, 'cs', PATTNG_CS_443);
+        setPattNGParam(node, 'sni', host);
+    } else {
+        setPattNGParam(node, 'fm', PATTNG_FM_8080);
+        for (const key of ['sni', 'alpn', 'fp', 'cs']) {
+            deletePattNGParam(node, key);
+        }
+    }
+
+    return node.toString().replace(/\+/g, '%20');
+}
+
+function getPattNGParam(node, key) {
+    for (const [name, value] of node.searchParams) {
+        if (name.toLowerCase() === key) return value;
+    }
+    return '';
+}
+
+function setPattNGParam(node, key, value) {
+    deletePattNGParam(node, key);
+    node.searchParams.set(key, value);
+}
+
+function deletePattNGParam(node, key) {
+    for (const name of [...node.searchParams.keys()]) {
+        if (name.toLowerCase() === key) node.searchParams.delete(name);
     }
 }
 
