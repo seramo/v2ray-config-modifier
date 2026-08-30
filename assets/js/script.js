@@ -1,6 +1,5 @@
 let generatedOutput = '';
 
-const PATTNG_ADDRESS = '188.114.97.6';
 const PATTNG_PORTS_443 = ['443', '2053', '2083', '2087', '2096', '8443'];
 const PATTNG_PORTS_8080 = ['80', '8080', '8880', '2052', '2082', '2086', '2095'];
 const PATTNG_TRANSPORTS = ['ws', 'xhttp', 'websocket', 'httpupgrade', 'grpc'];
@@ -57,11 +56,13 @@ function toggleInputFields() {
     const listFields = document.getElementById('listFields');
     const configListFields = document.getElementById('configListFields');
     const sniSpoofFields = document.getElementById('sniSpoofFields');
+    const pattngFields = document.getElementById('pattngFields');
 
     cidrFields.style.display = 'none';
     listFields.style.display = 'none';
     configListFields.style.display = 'none';
     sniSpoofFields.style.display = 'none';
+    pattngFields.style.display = 'none';
 
     if (inputType === 'cidr') {
         cidrFields.style.display = 'block';
@@ -71,6 +72,8 @@ function toggleInputFields() {
         configListFields.style.display = 'block';
     } else if (inputType === 'sniSpoof') {
         sniSpoofFields.style.display = 'block';
+    } else if (inputType === 'pattng') {
+        pattngFields.style.display = 'block';
     }
 }
 
@@ -156,13 +159,35 @@ function generateConfigs() {
 }
 
 function modifyConfigsForPattNG(baseConfigs) {
-    const configs = [...new Set(baseConfigs.map(config => transformPattNGConfig(config.trim())).filter(Boolean))];
+    const rawText = document.getElementById('pattngIpList').value.trim();
 
-    generatedOutput = configs.length ? `${configs.join('\n\n')}\n\n` : '';
-    displayResult(configs.length);
+    if (!rawText) {
+        showWarning('Please enter the IP list.');
+        return;
+    }
+
+    const validIpList = extractValidIPs(rawText);
+
+    if (validIpList.length === 0) {
+        showWarning('No valid IPs found in the input.');
+        return;
+    }
+
+    const configs = [];
+
+    for (const config of baseConfigs) {
+        for (const ip of validIpList) {
+            const transformedConfig = transformPattNGConfig(config.trim(), ip);
+            if (transformedConfig) configs.push(transformedConfig);
+        }
+    }
+
+    const uniqueConfigs = [...new Set(configs)];
+    generatedOutput = uniqueConfigs.length ? `${uniqueConfigs.join('\n\n')}\n\n` : '';
+    displayResult(uniqueConfigs.length);
 }
 
-function transformPattNGConfig(config) {
+function transformPattNGConfig(config, ip) {
     const configType = detectConfigType(config);
     if (configType !== 'vless' && configType !== 'trojan') return '';
 
@@ -183,7 +208,7 @@ function transformPattNGConfig(config) {
     if (tls && !PATTNG_PORTS_443.includes(node.port)) return '';
     if (!tls && !PATTNG_PORTS_8080.includes(node.port)) return '';
 
-    node.hostname = PATTNG_ADDRESS;
+    node.hostname = ip.includes(':') ? `[${ip}]` : ip;
     node.port = tls ? '443' : '8080';
 
     for (const key of [...node.searchParams.keys()]) {
@@ -269,6 +294,13 @@ function modifyConfigsFromCIDR(baseConfigs) {
     displayResult(count);
 }
 
+function extractValidIPs(rawText) {
+    const ipv4Matches = rawText.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g) || [];
+    const ipv6Matches = rawText.match(/(?:[a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}|(?:[a-fA-F0-9]{1,4}:)*:[a-fA-F0-9]{1,4}(?::[a-fA-F0-9]{1,4})*/g) || [];
+
+    return [...new Set([...ipv4Matches, ...ipv6Matches])].filter(ip => ipaddr.isValid(ip));
+}
+
 function modifyConfigsFromList(baseConfigs) {
     const rawText = document.getElementById('ipList').value.trim();
 
@@ -277,10 +309,7 @@ function modifyConfigsFromList(baseConfigs) {
         return;
     }
 
-    const ipv4Matches = rawText.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g) || [];
-    const ipv6Matches = rawText.match(/(?:[a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}|(?:[a-fA-F0-9]{1,4}:)*:[a-fA-F0-9]{1,4}(?::[a-fA-F0-9]{1,4})*/g) || [];
-    const allMatches = [...ipv4Matches, ...ipv6Matches];
-    const validIpList = [...new Set(allMatches)].filter(ip => ipaddr.isValid(ip));
+    const validIpList = extractValidIPs(rawText);
 
     if (validIpList.length === 0) {
         showWarning('No valid IPs found in the input.');
