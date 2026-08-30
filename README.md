@@ -9,11 +9,13 @@ The **V2Ray Config Modifier** is an HTML and JavaScript-based application design
 ## Features
 
 - **VMESS, VLESS, WireGuard, and Trojan Support**: Accepts VMESS, VLESS, WireGuard, and Trojan configurations as input.
-- **IP Range Input**: Users can enter custom IP addresses or ranges in CIDR format.
+- **IP List and Range Input**: Users can enter custom IP addresses or ranges in CIDR format.
 - **Predefined IP Ranges**: Easily select from existing IP ranges of Cloudflare, Gcore, or Fastly.
 - **Config List Support**: Paste a list of VMESS, VLESS, WireGuard, or Trojan configurations and generate new ones based on a base config.
+- **SNI Spoof**: Replace the target IP and port with custom values.
+- **PattNG**: Generate PattNG configs using a custom IP list, with `104.21.70.21` as the default IP.
 - **Bulk Config Generation**: Generates configurations for all specified IP addresses or configurations in one click.
-- **User-Friendly Interface**: Simple design with no installation needed.
+- **User-Friendly Interface**: Simple light and dark interface with no installation needed.
 - **Export Options**: Save generated configurations to a file or copy to the clipboard.
 
 ## Getting Started
@@ -57,10 +59,10 @@ This web-based version is fully functional and allows you to generate and downlo
 
 ### Step 2: Select IP Addresses or Configs
 
-#### Option A: Enter Custom IP Range
+#### Option A: Enter Custom IPs or Ranges
 
-- **IP Range**: Enter an IP range using CIDR notation (e.g., `192.168.1.0/24`).
-- **Multiple IPs**: Provide a list of IP addresses, each on a new line.
+- **IP List**: Provide a list of IP addresses.
+- **IP Range**: Enter one or more IP ranges using CIDR notation (e.g., `192.168.1.0/24`).
 
 #### Option B: Use Predefined IP Ranges
 
@@ -72,13 +74,22 @@ This web-based version is fully functional and allows you to generate and downlo
 
 - **Config List**: Paste a list of existing VMESS, VLESS, WireGuard, or Trojan configurations. The tool will extract the IP address from each configuration and use them to generate new configurations based on the provided base config.
 
+#### Option D: SNI Spoof
+
+- Set a custom spoof IP and port.
+
+#### Option E: PattNG
+
+- Enter one or more IP addresses for PattNG. The default IP is `104.21.70.21`.
+
 #### Note
 
 You can combine custom IP ranges with predefined ranges for more flexibility.
 
 ### Step 3: Generate Configurations
 
-- Click the **"Generate Configs"** button.
+- For IP ranges, set the number of outputs. The default is `2048`.
+- Click the **"Generate"** button.
 - The tool processes the base configuration and replaces the IP address with each IP from the specified ranges or config list.
 - The generated configurations will be available for copying or downloading.
 
