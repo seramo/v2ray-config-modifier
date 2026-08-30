@@ -28,9 +28,7 @@ function showMessage(message, type) {
             messageBox.classList.add('alert-danger');
     }
 
-    setTimeout(() => {
-        messageBox.style.display = 'block';
-    }, 250);
+    messageBox.style.display = 'block';
 }
 
 function showError(message) {
@@ -74,11 +72,6 @@ function toggleInputFields() {
     } else if (inputType === 'sniSpoof') {
         sniSpoofFields.style.display = 'block';
     }
-}
-
-function updateOutputCountValue() {
-    const rangeValue = document.getElementById('outputCount').value;
-    document.getElementById('outputCountValue').textContent = rangeValue;
 }
 
 function isValidCIDR(cidr) {
@@ -234,7 +227,12 @@ function deletePattNGParam(node, key) {
 
 function modifyConfigsFromCIDR(baseConfigs) {
     const ipRanges = document.getElementById('ipRange').value.trim().split('\n').filter(range => range.trim() !== '');
-    const outputCount = parseInt(document.getElementById('outputCount').value);
+    const outputCount = Math.floor(Number(document.getElementById('outputCount').value));
+
+    if (!Number.isFinite(outputCount) || outputCount < 1) {
+        showWarning('Please enter a valid number of outputs.');
+        return;
+    }
 
     if (ipRanges.length === 0) {
         showWarning('Please enter at least one IP range.');
@@ -399,15 +397,18 @@ function replaceIPAndPortInConfig(inputConfig, ipOrAddress, newPort = null) {
 }
 
 function displayResult(count) {
+    const formActions = document.getElementById('formActions');
     const copyButton = document.getElementById('copyButton');
     const downloadButton = document.getElementById('downloadButton');
 
     if (generatedOutput) {
         showSuccess(`Successfully generated ${count} configs.`);
+        formActions.classList.add('has-output');
         copyButton.style.display = 'inline-block';
         downloadButton.style.display = 'inline-block';
     } else {
         showError('No configs were generated.');
+        formActions.classList.remove('has-output');
         copyButton.style.display = 'none';
         downloadButton.style.display = 'none';
     }
@@ -467,4 +468,45 @@ function downloadOutput() {
         link.click();
         URL.revokeObjectURL(link.href);
     }
+}
+
+function setTheme(theme) {
+    document.documentElement.setAttribute('data-bs-theme', theme);
+    localStorage.setItem('theme', theme);
+
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        const nextTheme = theme === 'dark' ? 'light' : 'dark';
+        document.getElementById('themeSunIcon').classList.toggle('d-none', nextTheme !== 'light');
+        document.getElementById('themeMoonIcon').classList.toggle('d-none', nextTheme !== 'dark');
+        themeToggle.setAttribute('aria-label', `Switch to ${nextTheme} mode`);
+        themeToggle.title = `Switch to ${nextTheme} mode`;
+    }
+
+    document.querySelector('meta[name="theme-color"]').content = theme === 'dark' ? '#141c23' : '#f5f8fa';
+}
+
+function toggleTheme() {
+    const theme = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+    setTheme(theme);
+}
+
+setTheme(localStorage.getItem('theme') || 'dark');
+
+function updateBaseConfigCount() {
+    const inputConfig = document.getElementById('inputConfig');
+    const baseConfigCount = document.getElementById('baseConfigCount');
+
+    if (! inputConfig || ! baseConfigCount) {
+        return;
+    }
+
+    const count = inputConfig.value.split(/\n+/).map(line => line.trim()).filter(Boolean).length;
+    baseConfigCount.textContent = `${count} config${count === 1 ? '' : 's'}`;
+}
+
+const inputConfig = document.getElementById('inputConfig');
+if (inputConfig) {
+    inputConfig.addEventListener('input', updateBaseConfigCount);
+    updateBaseConfigCount();
 }

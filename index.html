@@ -1,94 +1,153 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en" dir="ltr" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>V2Ray Config Modifier</title>
     <meta name="description" content="A tool for modifying V2Ray configs">
-    <meta name="theme-color" content="#0d6efd">
+    <meta name="theme-color" content="#141c23">
+    <script>document.documentElement.setAttribute('data-bs-theme', localStorage.getItem('theme') || 'dark');</script>
     <link href="assets/css/bootstrap.min.css?v=5.3.3" rel="stylesheet">
-    <link href="assets/css/style.css?v=1.2" rel="stylesheet">
+    <link href="assets/css/style.css?v=1.4" rel="stylesheet">
 </head>
-<body>
-<nav class="navbar navbar-expand navbar-dark bg-primary">
+<body class="d-flex flex-column min-vh-100">
+<nav class="navbar app-navbar border-bottom py-0">
     <div class="container">
-        <a class="navbar-brand me-0" href="https://seramo.github.io/v2ray-config-modifier/">V2Ray Config Modifier</a>
-        <ul class="navbar-nav px-0">
+        <a class="navbar-brand app-brand d-flex align-items-center gap-2 me-2" href="https://seramo.github.io/v2ray-config-modifier/">
+            <img src="assets/img/logo.svg" width="24" height="24" alt="">
+            <span>V2Ray<span class="d-none d-md-inline"> Config Modifier</span></span>
+        </a>
+        <ul class="navbar-nav flex-row gap-2 px-0 align-items-center ms-auto">
             <li class="nav-item">
-                <a class="nav-link" href="https://youtu.be/J9g1kbdW8Oc/" target="_blank">Tutorial</a>
+                <a class="btn btn-sm header-action btn-youtube d-flex align-items-center gap-1" href="https://youtu.be/J9g1kbdW8Oc/" target="_blank" rel="noopener noreferrer" title="Watch tutorial on YouTube">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                        <path d="M14.5 4.5c-.2-.8-.8-1.4-1.6-1.6C11.7 2.6 8 2.6 8 2.6s-3.7 0-4.9.3c-.8.2-1.4.8-1.6 1.6C1.2 5.7 1.2 8 1.2 8s0 2.3.3 3.5c.2.8.8 1.4 1.6 1.6 1.2.3 4.9.3 4.9.3s3.7 0 4.9-.3c.8-.2 1.4-.8 1.6-1.6.3-1.2.3-3.5.3-3.5s0-2.3-.3-3.5M6.7 10.4V5.6L10.9 8z"/>
+                    </svg>
+                    <span class="d-none d-sm-inline">Tutorial</span>
+                </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link pe-0" href="https://github.com/seramo/v2ray-config-modifier/" target="_blank">GitHub</a>
+                <a class="btn btn-sm header-action btn-star d-flex align-items-center gap-1" href="https://github.com/seramo/v2ray-config-modifier/" target="_blank" rel="noopener noreferrer" aria-label="Star V2Ray Config Modifier on GitHub" title="Star on GitHub">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                        <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187z"/>
+                    </svg>
+                    <span class="d-none d-sm-inline">Star</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <button type="button" id="themeToggle" class="btn btn-sm header-theme-toggle p-1 lh-1" onclick="toggleTheme()" aria-label="Switch to light mode" title="Switch to light mode">
+                    <svg id="themeSunIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                        <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/>
+                    </svg>
+                    <svg id="themeMoonIcon" class="d-none" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                        <path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278"/>
+                        <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.73 1.73 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.73 1.73 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.73 1.73 0 0 0 1.097-1.097zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.16 1.16 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.16 1.16 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732l.258-.774z"/>
+                    </svg>
+                </button>
             </li>
         </ul>
     </div>
 </nav>
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-12">
-            <div class="alert" role="alert" id="messageBox" style="display: none;">
+
+<main class="container mt-3 mt-md-4 mb-4 mb-md-5 flex-grow-1">
+    <div class="card app-card workbench">
+        <div class="card-body p-3 p-md-4">
+            <div class="form-section form-section--first">
+                <div class="field-heading">
+                    <label for="inputConfig" class="form-label mb-0">Configs</label>
+                    <span id="baseConfigCount" class="field-meta" aria-live="polite">0 configs</span>
+                </div>
+                <textarea id="inputConfig" class="form-control font-monospace code-input" rows="5" placeholder="vless://..." spellcheck="false"></textarea>
+            </div>
+
+            <div class="form-section">
+                <label class="form-label">Input Type</label>
+                <input type="hidden" id="inputType" value="list">
+                <div class="input-type-selector" role="group" aria-label="Input type">
+                    <div>
+                        <input type="radio" class="btn-check" name="inputTypeOption" id="typeList" value="list" checked onchange="document.getElementById('inputType').value = this.value; toggleInputFields();">
+                        <label class="btn btn-outline-secondary w-100" for="typeList">IP List</label>
+                    </div>
+                    <div>
+                        <input type="radio" class="btn-check" name="inputTypeOption" id="typeCidr" value="cidr" onchange="document.getElementById('inputType').value = this.value; toggleInputFields();">
+                        <label class="btn btn-outline-secondary w-100" for="typeCidr">IP Ranges</label>
+                    </div>
+                    <div>
+                        <input type="radio" class="btn-check" name="inputTypeOption" id="typeConfigList" value="configList" onchange="document.getElementById('inputType').value = this.value; toggleInputFields();">
+                        <label class="btn btn-outline-secondary w-100" for="typeConfigList">Configs List</label>
+                    </div>
+                    <div>
+                        <input type="radio" class="btn-check" name="inputTypeOption" id="typeSniSpoof" value="sniSpoof" onchange="document.getElementById('inputType').value = this.value; toggleInputFields();">
+                        <label class="btn btn-outline-secondary w-100" for="typeSniSpoof">SNI Spoof</label>
+                    </div>
+                    <div>
+                        <input type="radio" class="btn-check" name="inputTypeOption" id="typePattng" value="pattng" onchange="document.getElementById('inputType').value = this.value; toggleInputFields();">
+                        <label class="btn btn-outline-secondary w-100" for="typePattng">PattNG</label>
+                    </div>
+                </div>
+
+                <div id="listFields" class="method-panel mb-0">
+                    <label for="ipList" class="form-label">IP List</label>
+                    <textarea id="ipList" class="form-control font-monospace code-input" rows="8" placeholder="1.1.1.1" spellcheck="false"></textarea>
+                </div>
+
+                <div id="cidrFields" class="method-panel mb-0" style="display: none;">
+                    <div class="field-heading field-heading--providers">
+                        <label for="ipRange" class="form-label mb-0">IP Ranges</label>
+                        <div class="provider-presets d-flex flex-wrap gap-2">
+                            <button type="button" onclick="loadIPRanges('cloudflare')" class="btn provider-button">
+                                <span class="provider-dot provider-dot-cloudflare" aria-hidden="true"></span>Cloudflare
+                            </button>
+                            <button type="button" onclick="loadIPRanges('gcore')" class="btn provider-button">
+                                <span class="provider-dot provider-dot-gcore" aria-hidden="true"></span>Gcore
+                            </button>
+                            <button type="button" onclick="loadIPRanges('fastly')" class="btn provider-button">
+                                <span class="provider-dot provider-dot-fastly" aria-hidden="true"></span>Fastly
+                            </button>
+                        </div>
+                    </div>
+                    <textarea id="ipRange" class="form-control font-monospace code-input" rows="5" placeholder="104.16.0.0/13" spellcheck="false"></textarea>
+
+                    <div class="output-count-control">
+                        <label for="outputCount" class="form-label">Number of Outputs</label>
+                        <input type="number" id="outputCount" class="form-control output-count-input" step="1" value="2048" inputmode="numeric">
+                    </div>
+                </div>
+
+                <div class="method-panel mb-0" id="configListFields" style="display: none;">
+                    <label for="configList" class="form-label">Configs List</label>
+                    <textarea id="configList" class="form-control font-monospace code-input" rows="8" placeholder="vless://..." spellcheck="false"></textarea>
+                </div>
+
+                <div class="method-panel mb-0" id="sniSpoofFields" style="display: none;">
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <label for="spoofIp" class="form-label">Spoof IP</label>
+                            <input type="text" id="spoofIp" class="form-control code-input" value="127.0.0.1" placeholder="127.0.0.1" spellcheck="false">
+                        </div>
+                        <div class="col-md-5">
+                            <label for="spoofPort" class="form-label">Spoof Port</label>
+                            <input type="number" id="spoofPort" class="form-control" value="40443" placeholder="40443">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert form-message" role="alert" id="messageBox" style="display: none;">
                 <span id="messageText"></span>
             </div>
-        </div>
 
-        <div class="col-12">
-            <label for="inputConfig" class="form-label">Config</label>
-            <textarea id="inputConfig" class="form-control" rows="3" placeholder="Enter VLESS, VMESS, WireGuard, or Trojan configs (one per line)"></textarea>
-        </div>
-
-        <div class="col-12 mt-3">
-            <label for="inputType" class="form-label">Input Type</label>
-            <select id="inputType" class="form-control" onchange="toggleInputFields()">
-                <option value="cidr">IP Ranges</option>
-                <option value="list">IP List</option>
-                <option value="configList">Configs List</option>
-                <option value="sniSpoof">SNI Spoof</option>
-                <option value="pattng">PattNG</option>
-            </select>
-        </div>
-
-        <div class="col-12 mt-3" id="cidrFields">
-            <label for="ipRange" class="form-label">IP Ranges (CIDR)</label>
-            <button onclick="loadIPRanges('cloudflare')" class="badge bg-cloudflare border-0 ms-1">Cloudflare</button>
-            <button onclick="loadIPRanges('gcore')" class="badge bg-gcore border-0 ms-1">Gcore</button>
-            <button onclick="loadIPRanges('fastly')" class="badge bg-fastly border-0 ms-1">Fastly</button>
-            <textarea id="ipRange" class="form-control" rows="4" placeholder="Each IP range on a new line"></textarea>
-            <label for="outputCount" class="form-label mt-3">Number of outputs: <span id="outputCountValue">5000</span></label>
-            <input type="range" class="form-range" min="100" max="50000" step="100" id="outputCount" value="5000" oninput="updateOutputCountValue()">
-        </div>
-
-        <div class="col-12 mt-3" id="listFields" style="display: none;">
-            <label for="ipList" class="form-label">IP List</label>
-            <textarea id="ipList" class="form-control" rows="8" placeholder="Each IP on a new line"></textarea>
-        </div>
-
-        <div class="col-12 mt-3" id="configListFields" style="display: none;">
-            <label for="configList" class="form-label">Configs List</label>
-            <textarea id="configList" class="form-control" rows="8" placeholder="Each config on a new line"></textarea>
-        </div>
-
-        <div class="col-12 mt-3" id="sniSpoofFields" style="display: none;">
-            <div class="row">
-                <div class="col-md-6">
-                    <label for="spoofIp" class="form-label">Spoof IP</label>
-                    <input type="text" id="spoofIp" class="form-control" value="127.0.0.1" placeholder="e.g. 127.0.0.1">
-                </div>
-                <div class="col-md-6 mt-3 mt-md-0">
-                    <label for="spoofPort" class="form-label">Spoof Port</label>
-                    <input type="number" id="spoofPort" class="form-control" value="40443" placeholder="e.g. 40443">
-                </div>
+            <div class="form-actions" id="formActions">
+                <button type="button" onclick="generateConfigs()" class="btn btn-primary generate-button">Generate</button>
+                <button type="button" onclick="copyToClipboard()" class="btn btn-outline-secondary" id="copyButton" style="display: none;">Copy</button>
+                <button type="button" onclick="downloadOutput()" class="btn btn-outline-secondary" id="downloadButton" style="display: none;">Download</button>
             </div>
         </div>
-
-        <div class="col-12 mt-4">
-            <button onclick="generateConfigs()" class="btn btn-primary">Generate Configs</button>
-            <button onclick="copyToClipboard()" class="btn btn-secondary px-4" id="copyButton" style="display: none;">Copy</button>
-            <button onclick="downloadOutput()" class="btn btn-success px-4" id="downloadButton" style="display: none;">Download</button>
-        </div>
     </div>
-</div>
+</main>
+
 <script src="assets/js/ipaddr.min.js?v=2.0.1"></script>
 <script src="assets/js/base64.min.js?v=3.7.7"></script>
-<script src="assets/js/script.js?v=1.3"></script>
+<script src="assets/js/script.js?v=1.4"></script>
 </body>
 </html>
