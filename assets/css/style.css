@@ -317,7 +317,7 @@ body {
 .form-text.field-message {
     margin-top: 0.4rem;
     color: var(--app-danger);
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     line-height: 1.4;
 }
 
