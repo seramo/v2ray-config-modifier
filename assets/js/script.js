@@ -78,34 +78,24 @@ function toggleInputFields() {
 }
 
 function isValidCIDR(cidr) {
-    return /^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$/.test(cidr) || /^[0-9a-fA-F:]+\/\d{1,3}$/.test(cidr);
+    try {
+        return ipaddr.parseCIDR(cidr)[0].kind() === 'ipv4';
+    } catch (error) {
+        return false;
+    }
 }
 
 function incrementIP(ip) {
-    if (ip.kind() === 'ipv4') {
-        let currentIpNumeric = ip.octets.reduce((acc, octet) => (acc << 8) + octet, 0);
-        currentIpNumeric += 1;
-        const nextIpOctets = [
-            (currentIpNumeric >>> 24) & 0xFF,
-            (currentIpNumeric >>> 16) & 0xFF,
-            (currentIpNumeric >>> 8) & 0xFF,
-            currentIpNumeric & 0xFF
-        ];
-        return new ipaddr.IPv4(nextIpOctets);
-    } else if (ip.kind() === 'ipv6') {
-        let parts = ip.parts.map(part => BigInt(part));
-        let i = parts.length - 1;
-        while (i >= 0) {
-            parts[i] = parts[i] + 1n;
-            if (parts[i] > 0xFFFFn) {
-                parts[i] = 0n;
-                i--;
-            } else {
-                break;
-            }
-        }
-        return ipaddr.IPv6.parse(parts.map(part => part.toString(16)).join(':'));
-    }
+    let currentIpNumeric = ip.octets.reduce((acc, octet) => (acc << 8) + octet, 0);
+    currentIpNumeric += 1;
+    const nextIpOctets = [
+        (currentIpNumeric >>> 24) & 0xFF,
+        (currentIpNumeric >>> 16) & 0xFF,
+        (currentIpNumeric >>> 8) & 0xFF,
+        currentIpNumeric & 0xFF
+    ];
+
+    return new ipaddr.IPv4(nextIpOctets);
 }
 
 function isValidConfigFormat(inputConfig) {
@@ -295,10 +285,9 @@ function modifyConfigsFromCIDR(baseConfigs) {
 }
 
 function extractValidIPs(rawText) {
-    const ipv4Matches = rawText.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g) || [];
-    const ipv6Matches = rawText.match(/(?:[a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}|(?:[a-fA-F0-9]{1,4}:)*:[a-fA-F0-9]{1,4}(?::[a-fA-F0-9]{1,4})*/g) || [];
+    const matches = rawText.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g) || [];
 
-    return [...new Set([...ipv4Matches, ...ipv6Matches])].filter(ip => ipaddr.isValid(ip));
+    return [...new Set(matches)].filter(ip => ipaddr.isValid(ip) && ipaddr.parse(ip).kind() === 'ipv4');
 }
 
 function modifyConfigsFromList(baseConfigs) {
