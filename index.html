@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#141c23">
     <script>document.documentElement.setAttribute('data-bs-theme', localStorage.getItem('theme') || 'dark');</script>
     <link href="assets/css/bootstrap.min.css?v=5.3.3" rel="stylesheet">
-    <link href="assets/css/style.css?v=1.6" rel="stylesheet">
+    <link href="assets/css/style.css?v=1.9" rel="stylesheet">
 </head>
 <body class="d-flex flex-column min-vh-100">
 <nav class="navbar app-navbar border-bottom py-0">
@@ -57,7 +57,8 @@
                     <label for="inputConfig" class="form-label mb-0">Configs</label>
                     <span id="baseConfigCount" class="field-meta" aria-live="polite">0 configs</span>
                 </div>
-                <textarea id="inputConfig" class="form-control font-monospace code-input" rows="5" placeholder="vless://..." spellcheck="false"></textarea>
+                <textarea id="inputConfig" class="form-control font-monospace code-input" rows="5" placeholder="vless://..." spellcheck="false" aria-describedby="configMessage"></textarea>
+                <div id="configMessage" class="form-text field-message" aria-live="polite"></div>
             </div>
 
             <div class="form-section">
@@ -88,53 +89,59 @@
 
                 <div id="listFields" class="method-panel mb-0">
                     <label for="ipList" class="form-label">IP List</label>
-                    <textarea id="ipList" class="form-control font-monospace code-input" rows="8" placeholder="1.1.1.1" spellcheck="false"></textarea>
+                    <textarea id="ipList" class="form-control font-monospace code-input" rows="8" placeholder="1.1.1.1" spellcheck="false" aria-describedby="ipListMessage"></textarea>
+                    <div id="ipListMessage" class="form-text field-message" aria-live="polite"></div>
                 </div>
 
                 <div id="pattngFields" class="method-panel mb-0" style="display: none;">
                     <label for="pattngIpList" class="form-label">IP List</label>
-                    <textarea id="pattngIpList" class="form-control font-monospace code-input" rows="8" placeholder="104.21.70.21" spellcheck="false">104.21.70.21</textarea>
+                    <textarea id="pattngIpList" class="form-control font-monospace code-input" rows="8" placeholder="104.21.70.21" spellcheck="false" aria-describedby="pattngMessage">104.21.70.21</textarea>
+                    <div id="pattngMessage" class="form-text field-message" aria-live="polite"></div>
                 </div>
 
                 <div id="cidrFields" class="method-panel mb-0" style="display: none;">
                     <div class="field-heading field-heading--providers">
                         <label for="ipRange" class="form-label mb-0">IP Ranges</label>
                         <div class="provider-presets d-flex flex-wrap gap-2">
-                            <button type="button" onclick="loadIPRanges('cloudflare')" class="btn provider-button">
-                                <span class="provider-dot provider-dot-cloudflare" aria-hidden="true"></span>Cloudflare
+                            <button type="button" onclick="loadIPRanges('cloudflare', this)" class="btn provider-button">
+                                <span class="provider-dot provider-dot-cloudflare" aria-hidden="true"></span><span class="provider-label">Cloudflare</span>
                             </button>
-                            <button type="button" onclick="loadIPRanges('gcore')" class="btn provider-button">
-                                <span class="provider-dot provider-dot-gcore" aria-hidden="true"></span>Gcore
+                            <button type="button" onclick="loadIPRanges('gcore', this)" class="btn provider-button">
+                                <span class="provider-dot provider-dot-gcore" aria-hidden="true"></span><span class="provider-label">Gcore</span>
                             </button>
-                            <button type="button" onclick="loadIPRanges('fastly')" class="btn provider-button">
-                                <span class="provider-dot provider-dot-fastly" aria-hidden="true"></span>Fastly
+                            <button type="button" onclick="loadIPRanges('fastly', this)" class="btn provider-button">
+                                <span class="provider-dot provider-dot-fastly" aria-hidden="true"></span><span class="provider-label">Fastly</span>
                             </button>
                         </div>
                     </div>
-                    <textarea id="ipRange" class="form-control font-monospace code-input" rows="5" placeholder="104.16.0.0/13" spellcheck="false"></textarea>
+                    <textarea id="ipRange" class="form-control font-monospace code-input" rows="5" placeholder="104.16.0.0/13" spellcheck="false" aria-describedby="ipRangeMessage"></textarea>
+                    <div id="ipRangeMessage" class="form-text field-message" aria-live="polite"></div>
 
                     <div class="output-count-control">
                         <label for="outputCount" class="form-label">Number of Outputs</label>
-                        <input type="number" id="outputCount" class="form-control output-count-input" step="1" value="2048" inputmode="numeric">
+                        <input type="number" id="outputCount" class="form-control output-count-input" step="1" value="2048" inputmode="numeric" aria-describedby="outputCountMessage">
+                        <div id="outputCountMessage" class="form-text field-message" aria-live="polite"></div>
                     </div>
                 </div>
 
                 <div class="method-panel mb-0" id="configListFields" style="display: none;">
                     <label for="configList" class="form-label">Configs List</label>
-                    <textarea id="configList" class="form-control font-monospace code-input" rows="8" placeholder="vless://..." spellcheck="false"></textarea>
+                    <textarea id="configList" class="form-control font-monospace code-input" rows="8" placeholder="vless://..." spellcheck="false" aria-describedby="configListMessage"></textarea>
+                    <div id="configListMessage" class="form-text field-message" aria-live="polite"></div>
                 </div>
 
                 <div class="method-panel mb-0" id="sniSpoofFields" style="display: none;">
                     <div class="row g-3">
                         <div class="col-md-7">
                             <label for="spoofIp" class="form-label">Spoof IP</label>
-                            <input type="text" id="spoofIp" class="form-control code-input" value="127.0.0.1" placeholder="127.0.0.1" spellcheck="false">
+                            <input type="text" id="spoofIp" class="form-control code-input" value="127.0.0.1" placeholder="127.0.0.1" spellcheck="false" aria-describedby="sniSpoofMessage">
                         </div>
                         <div class="col-md-5">
                             <label for="spoofPort" class="form-label">Spoof Port</label>
-                            <input type="number" id="spoofPort" class="form-control" value="40443" placeholder="40443">
+                            <input type="number" id="spoofPort" class="form-control" value="40443" placeholder="40443" aria-describedby="sniSpoofMessage">
                         </div>
                     </div>
+                    <div id="sniSpoofMessage" class="form-text field-message" aria-live="polite"></div>
                 </div>
             </div>
 
@@ -153,6 +160,6 @@
 
 <script src="assets/js/ipaddr.min.js?v=2.0.1"></script>
 <script src="assets/js/base64.min.js?v=3.7.7"></script>
-<script src="assets/js/script.js?v=1.6"></script>
+<script src="assets/js/script.js?v=1.9"></script>
 </body>
 </html>

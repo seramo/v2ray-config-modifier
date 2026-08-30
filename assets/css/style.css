@@ -314,6 +314,27 @@ body {
     font-size: 0.75rem;
 }
 
+.form-text.field-message {
+    margin-top: 0.4rem;
+    color: var(--app-danger);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+}
+
+.form-control.is-invalid {
+    border-color: var(--app-danger);
+    background-image: none;
+}
+
+.form-control.is-invalid:focus {
+    border-color: var(--app-danger);
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--app-danger) 18%, transparent);
+}
+
+.field-message:empty {
+    display: none;
+}
+
 .form-message {
     margin: 0.75rem 0 0;
     padding: 0.75rem;

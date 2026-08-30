@@ -42,6 +42,53 @@ function showSuccess(message) {
     showMessage(message, 'success');
 }
 
+function clearFieldMessages() {
+    document.querySelectorAll('.field-message').forEach(message => {
+        message.textContent = '';
+    });
+
+    document.querySelectorAll('.form-control.is-invalid').forEach(input => {
+        input.classList.remove('is-invalid');
+        input.removeAttribute('aria-invalid');
+    });
+}
+
+function clearMessage() {
+    const messageBox = document.getElementById('messageBox');
+
+    if (messageBox) {
+        messageBox.style.display = 'none';
+    }
+
+    clearFieldMessages();
+}
+
+function showFieldMessage(id, message) {
+    clearMessage();
+
+    const fieldMessage = document.getElementById(id);
+    if (fieldMessage) {
+        fieldMessage.textContent = message;
+    }
+
+    document.querySelectorAll(`[aria-describedby~="${id}"]`).forEach(input => {
+        input.classList.add('is-invalid');
+        input.setAttribute('aria-invalid', 'true');
+    });
+}
+
+function showButtonFeedback(button, message, duration = 2000) {
+    const label = button.querySelector('.provider-label') || button;
+    const originalText = button.dataset.defaultLabel || label.textContent;
+
+    button.dataset.defaultLabel = originalText;
+    clearTimeout(button.feedbackTimer);
+    label.textContent = message;
+    button.feedbackTimer = setTimeout(() => {
+        label.textContent = originalText;
+    }, duration);
+}
+
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -51,6 +98,8 @@ function shuffleArray(array) {
 }
 
 function toggleInputFields() {
+    clearMessage();
+
     const inputType = document.getElementById('inputType').value;
     const cidrFields = document.getElementById('cidrFields');
     const listFields = document.getElementById('listFields');
@@ -124,14 +173,14 @@ function generateConfigs() {
     const rawInput = document.getElementById('inputConfig').value.trim();
 
     if (!rawInput) {
-        showWarning('Please enter the config.');
+        showFieldMessage('configMessage', 'Please enter the config.');
         return;
     }
 
     const baseConfigs = rawInput.split('\n').filter(c => isValidConfigFormat(c.trim()));
 
     if (baseConfigs.length === 0) {
-        showWarning('No valid base configs found.');
+        showFieldMessage('configMessage', 'No valid base configs found.');
         return;
     }
 
@@ -152,14 +201,14 @@ function modifyConfigsForPattNG(baseConfigs) {
     const rawText = document.getElementById('pattngIpList').value.trim();
 
     if (!rawText) {
-        showWarning('Please enter the IP list.');
+        showFieldMessage('pattngMessage', 'Please enter the IP list.');
         return;
     }
 
     const validIpList = extractValidIPs(rawText);
 
     if (validIpList.length === 0) {
-        showWarning('No valid IPs found in the input.');
+        showFieldMessage('pattngMessage', 'No valid IPs found in the input.');
         return;
     }
 
@@ -245,18 +294,18 @@ function modifyConfigsFromCIDR(baseConfigs) {
     const outputCount = Math.floor(Number(document.getElementById('outputCount').value));
 
     if (!Number.isFinite(outputCount) || outputCount < 1) {
-        showWarning('Please enter a valid number of outputs.');
+        showFieldMessage('outputCountMessage', 'Please enter a valid number of outputs.');
         return;
     }
 
     if (ipRanges.length === 0) {
-        showWarning('Please enter at least one IP range.');
+        showFieldMessage('ipRangeMessage', 'Please enter at least one IP range.');
         return;
     }
 
     for (const ipRange of ipRanges) {
         if (!isValidCIDR(ipRange.trim())) {
-            showWarning(`Please enter a valid IP range: ${ipRange}`);
+            showFieldMessage('ipRangeMessage', `Please enter a valid IP range: ${ipRange}`);
             return;
         }
     }
@@ -294,14 +343,14 @@ function modifyConfigsFromList(baseConfigs) {
     const rawText = document.getElementById('ipList').value.trim();
 
     if (rawText.length === 0) {
-        showWarning('Please enter the IP list.');
+        showFieldMessage('ipListMessage', 'Please enter the IP list.');
         return;
     }
 
     const validIpList = extractValidIPs(rawText);
 
     if (validIpList.length === 0) {
-        showWarning('No valid IPs found in the input.');
+        showFieldMessage('ipListMessage', 'No valid IPs found in the input.');
         return;
     }
 
@@ -322,7 +371,7 @@ function modifyConfigsFromConfigsList(baseConfigs) {
     const configList = document.getElementById('configList').value.trim().split('\n').filter(config => config.trim() !== '');
 
     if (configList.length === 0) {
-        showWarning('Please enter the configs list.');
+        showFieldMessage('configListMessage', 'Please enter the configs list.');
         return;
     }
 
@@ -347,7 +396,7 @@ function modifyConfigsFromSNISpoof(baseConfigs) {
     const spoofPort = document.getElementById('spoofPort').value.trim();
 
     if (!spoofIp || !spoofPort) {
-        showWarning('Please enter both Spoof IP and Port.');
+        showFieldMessage('sniSpoofMessage', 'Please enter both Spoof IP and Port.');
         return;
     }
 
@@ -432,7 +481,17 @@ function displayResult(count) {
     }
 }
 
-async function loadIPRanges(service) {
+async function loadIPRanges(service, button) {
+    clearMessage();
+
+    const providerButtons = document.querySelectorAll('.provider-button');
+    const label = button.querySelector('.provider-label');
+    const originalText = button.dataset.defaultLabel || label.textContent;
+    button.dataset.defaultLabel = originalText;
+    clearTimeout(button.feedbackTimer);
+    providerButtons.forEach(providerButton => providerButton.disabled = true);
+    label.textContent = 'Loading...';
+
     const url = `https://raw.githubusercontent.com/seramo/cdn-ip-ranges/main/${service}.json`;
 
     try {
@@ -445,7 +504,7 @@ async function loadIPRanges(service) {
         const ipRanges = data.ipv4 || [];
 
         if (ipRanges.length === 0) {
-            showWarning('No IP range found.');
+            showFieldMessage('ipRangeMessage', 'No IP range found.');
             return;
         }
 
@@ -455,16 +514,20 @@ async function loadIPRanges(service) {
         } else {
             document.getElementById('ipRange').value = ipRanges.join('\n');
         }
+
     } catch (error) {
         console.error(error);
-        showError('An error occurred while loading IPs.');
+        showFieldMessage('ipRangeMessage', 'An error occurred while loading IPs.');
+    } finally {
+        label.textContent = originalText;
+        providerButtons.forEach(providerButton => providerButton.disabled = false);
     }
 }
 
 function copyToClipboard() {
     if (generatedOutput) {
         navigator.clipboard.writeText(generatedOutput.replace(/\n\n/g, '\n').trimEnd()).then(() => {
-            showSuccess('Configs have been saved to clipboard.');
+            showButtonFeedback(document.getElementById('copyButton'), 'Copied');
         }).catch(err => {
             console.error(err);
             showError('Copy error: ' + err);
@@ -508,6 +571,10 @@ function toggleTheme() {
     const theme = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
     setTheme(theme);
 }
+
+document.querySelectorAll('textarea, input:not([type="hidden"]):not([type="radio"])').forEach(input => {
+    input.addEventListener('input', clearMessage);
+});
 
 setTheme(localStorage.getItem('theme') || 'dark');
 
