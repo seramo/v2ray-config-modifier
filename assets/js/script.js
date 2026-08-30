@@ -168,6 +168,30 @@ function detectConfigType(inputConfig) {
     return null;
 }
 
+function normalizeConfigWhitespace(config) {
+    return config.replace(/[^\S\r\n]/g, character => encodeURIComponent(character));
+}
+
+function getDirectConfigs(rawInput) {
+    return rawInput.split(/\r?\n/).map(config => normalizeConfigWhitespace(config.trim())).filter(isValidConfigFormat);
+}
+
+function getBase64Configs(rawInput) {
+    try {
+        let base64Input = rawInput.replace(/\s/g, '').replace(/-/g, '+').replace(/_/g, '/');
+        base64Input = base64Input.padEnd(Math.ceil(base64Input.length / 4) * 4, '=');
+
+        return getDirectConfigs(Base64.decode(base64Input));
+    } catch (error) {
+        return [];
+    }
+}
+
+function getBaseConfigs(rawInput) {
+    const configs = getDirectConfigs(rawInput);
+    return configs.length > 0 ? configs : getBase64Configs(rawInput);
+}
+
 function generateConfigs() {
     const inputType = document.getElementById('inputType').value;
     const rawInput = document.getElementById('inputConfig').value.trim();
@@ -177,7 +201,7 @@ function generateConfigs() {
         return;
     }
 
-    const baseConfigs = rawInput.split('\n').filter(c => isValidConfigFormat(c.trim()));
+    const baseConfigs = getBaseConfigs(rawInput);
 
     if (baseConfigs.length === 0) {
         showFieldMessage('configMessage', 'No valid base configs found.');
@@ -592,6 +616,52 @@ function updateBaseConfigCount() {
 
 const inputConfig = document.getElementById('inputConfig');
 if (inputConfig) {
+    inputConfig.addEventListener('paste', event => {
+        const pastedText = event.clipboardData?.getData('text') || '';
+
+        if (! pastedText) {
+            return;
+        }
+
+        const directConfigs = getDirectConfigs(pastedText);
+        let replacement;
+
+        if (directConfigs.length > 0) {
+            replacement = pastedText.split(/\r?\n/).map(line => {
+                const config = line.trim();
+                return isValidConfigFormat(config) ? normalizeConfigWhitespace(config) : line;
+            }).join('\n');
+
+            if (replacement === pastedText) {
+                return;
+            }
+        } else {
+            const configs = getBase64Configs(pastedText);
+            if (configs.length === 0) {
+                return;
+            }
+
+            replacement = configs.join('\n');
+        }
+
+        event.preventDefault();
+
+        const start = inputConfig.selectionStart;
+        const end = inputConfig.selectionEnd;
+        const before = inputConfig.value.slice(0, start);
+        const after = inputConfig.value.slice(end);
+
+        if (before && ! before.endsWith('\n')) {
+            replacement = `\n${replacement}`;
+        }
+        if (after && ! after.startsWith('\n')) {
+            replacement += '\n';
+        }
+
+        inputConfig.setRangeText(replacement, start, end, 'end');
+        inputConfig.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
     inputConfig.addEventListener('input', updateBaseConfigCount);
     updateBaseConfigCount();
 }
