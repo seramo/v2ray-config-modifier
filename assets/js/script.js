@@ -77,7 +77,7 @@ function showFieldMessage(id, message) {
     });
 }
 
-function showButtonFeedback(button, message, duration = 2000) {
+function showButtonFeedback(button, message, duration = 1000) {
     const label = button.querySelector('.provider-label') || button;
     const originalText = button.dataset.defaultLabel || label.textContent;
 
