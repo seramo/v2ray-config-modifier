@@ -417,10 +417,6 @@ body {
         font-size: 0.95rem;
     }
 
-    .input-type-selector > div:last-child {
-        grid-column: 1 / -1;
-    }
-
     .field-heading--providers {
         flex-direction: column;
         align-items: stretch;
@@ -449,6 +445,6 @@ body {
     }
 
     .input-type-selector {
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-columns: repeat(6, minmax(0, 1fr));
     }
 }

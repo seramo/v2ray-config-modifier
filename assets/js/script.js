@@ -106,12 +106,14 @@ function toggleInputFields() {
     const configListFields = document.getElementById('configListFields');
     const sniSpoofFields = document.getElementById('sniSpoofFields');
     const pattngFields = document.getElementById('pattngFields');
+    const inputConfig = document.getElementById('inputConfig');
 
     cidrFields.style.display = 'none';
     listFields.style.display = 'none';
     configListFields.style.display = 'none';
     sniSpoofFields.style.display = 'none';
     pattngFields.style.display = 'none';
+    inputConfig.placeholder = inputType === 'wireguard' ? '[Interface]...' : 'vless://...';
 
     if (inputType === 'cidr') {
         cidrFields.style.display = 'block';
@@ -124,6 +126,8 @@ function toggleInputFields() {
     } else if (inputType === 'pattng') {
         pattngFields.style.display = 'block';
     }
+
+    updateBaseConfigCount();
 }
 
 function isValidCIDR(cidr) {
@@ -192,12 +196,111 @@ function getBaseConfigs(rawInput) {
     return configs.length > 0 ? configs : getBase64Configs(rawInput);
 }
 
+function convertWireGuardConfig(rawConfig) {
+    let section = '';
+    let peerName = '';
+    const interfaceConfig = {};
+    const peerConfig = {};
+    const awgKeys = [
+        'jc', 'jmin', 'jmax', 's1', 's2', 's3', 's4', 'h1', 'h2', 'h3', 'h4',
+        'i1', 'i2', 'i3', 'i4', 'i5', 'headerprotectionkey', 'contentpaddingaddition',
+        'rekeyaftertime', 'rekeytimeout', 'rejectaftertime', 'keepalivetimeout',
+        'maxhandshakeattempts', 'randomtrailers', 'disablecookies'
+    ];
+
+    for (const rawLine of rawConfig.split(/\r?\n/)) {
+        const line = rawLine.trim();
+        if (!line) continue;
+
+        if (line.toLowerCase() === '[interface]') {
+            section = 'interface';
+            continue;
+        }
+        if (line.toLowerCase() === '[peer]') {
+            section = 'peer';
+            continue;
+        }
+        if (line.startsWith('#')) {
+            if (section === 'peer' && !peerName && Object.keys(peerConfig).length === 0) peerName = line.substring(1).trim();
+            continue;
+        }
+
+        const separator = line.indexOf('=');
+        if (!section || separator === -1) continue;
+
+        const key = line.substring(0, separator).trim().toLowerCase();
+        const value = line.substring(separator + 1).trim();
+
+        if (section === 'interface') {
+            interfaceConfig[key] = value;
+        } else {
+            peerConfig[key] = value;
+        }
+    }
+
+    if (!interfaceConfig.privatekey || !interfaceConfig.address || !peerConfig.publickey || !peerConfig.endpoint) {
+        return null;
+    }
+
+    const endpoint = peerConfig.endpoint.match(/^(?:\[([^\]]+)\]|([^:]+)):(\d+)$/);
+    if (!endpoint) return null;
+
+    const host = endpoint[1] || endpoint[2];
+    const port = endpoint[3];
+    const params = new URLSearchParams();
+    params.set('publickey', peerConfig.publickey);
+    params.set('address', interfaceConfig.address.replace(/\s*,\s*/g, ','));
+
+    if (peerConfig.allowedips) params.set('allowedips', peerConfig.allowedips.replace(/\s*,\s*/g, ','));
+    if (interfaceConfig.mtu) params.set('mtu', interfaceConfig.mtu);
+    if (peerConfig.presharedkey) params.set('presharedkey', peerConfig.presharedkey);
+    if (peerConfig.persistentkeepalive) params.set('keepalive', peerConfig.persistentkeepalive);
+
+    const reserved = peerConfig.reserved || peerConfig.clientid || peerConfig.client_id;
+    if (reserved) params.set('reserved', reserved);
+
+    for (const key of awgKeys) {
+        if (interfaceConfig[key]) params.set(key, interfaceConfig[key]);
+    }
+
+    const endpointHost = host.includes(':') ? `[${host}]` : host;
+    const name = peerName || host;
+    const query = params.toString().replace(/\+/g, '%20');
+
+    return `wireguard://${encodeURIComponent(interfaceConfig.privatekey)}@${endpointHost}:${port}?${query}#${encodeURIComponent(name)}`;
+}
+
+function getWireGuardConfigs(rawInput) {
+    const directConfigs = getDirectConfigs(rawInput).filter(config => detectConfigType(config) === 'wireguard');
+    const base64Configs = getBase64Configs(rawInput).filter(config => detectConfigType(config) === 'wireguard');
+    const rawConfigs = rawInput
+        .split(/(?=^\s*\[Interface\]\s*$)/gim)
+        .map(config => config.trim())
+        .filter(config => /^\[Interface\]/im.test(config) && /^\[Peer\]/im.test(config))
+        .map(convertWireGuardConfig)
+        .filter(Boolean);
+
+    return [...new Set([...directConfigs, ...base64Configs, ...rawConfigs])];
+}
+
+function generateWireGuardConfigs(rawInput) {
+    const configs = getWireGuardConfigs(rawInput);
+
+    generatedOutput = configs.length ? `${configs.join('\n\n')}\n\n` : '';
+    displayResult(configs.length);
+}
+
 function generateConfigs() {
     const inputType = document.getElementById('inputType').value;
     const rawInput = document.getElementById('inputConfig').value.trim();
 
     if (!rawInput) {
         showFieldMessage('configMessage', 'Please enter the config.');
+        return;
+    }
+
+    if (inputType === 'wireguard') {
+        generateWireGuardConfigs(rawInput);
         return;
     }
 
@@ -610,7 +713,10 @@ function updateBaseConfigCount() {
         return;
     }
 
-    const count = inputConfig.value.split(/\n+/).map(line => line.trim()).filter(Boolean).length;
+    const inputType = document.getElementById('inputType')?.value;
+    const count = inputType === 'wireguard'
+        ? getWireGuardConfigs(inputConfig.value).length
+        : inputConfig.value.split(/\n+/).map(line => line.trim()).filter(Boolean).length;
     baseConfigCount.textContent = `${count} config${count === 1 ? '' : 's'}`;
 }
 
