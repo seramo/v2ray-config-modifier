@@ -9,6 +9,7 @@ The **V2Ray Config Modifier** is an HTML and JavaScript-based application design
 ## Features
 
 - **VMESS, VLESS, WireGuard, and Trojan Support**: Accepts VMESS, VLESS, WireGuard, and Trojan configurations as input.
+- **WireGuard Config Conversion**: Converts standard WireGuard `[Interface]` / `[Peer]` configs to `wireguard://` URLs, including multiple configs at once.
 - **IP List and Range Input**: Users can enter custom IP addresses or ranges in CIDR format.
 - **Predefined IP Ranges**: Easily select from existing IP ranges of Cloudflare, Gcore, or Fastly.
 - **Config List Support**: Paste a list of VMESS, VLESS, WireGuard, or Trojan configurations and generate new ones based on a base config.
@@ -57,6 +58,14 @@ This web-based version is fully functional and allows you to generate and downlo
 
 - **Paste Configuration**: Copy and paste your existing VMESS, VLESS, WireGuard, or Trojan configuration.
 
+### WireGuard Conversion
+
+- Paste one or more standard WireGuard configs containing `[Interface]` and `[Peer]` sections into the **Configs** field.
+- Select **WireGuard** as the input type.
+- Click **Generate** to convert the configs directly to `wireguard://` URLs. No IP list or IP range is required in this mode.
+- Existing `wireguard://` URLs and Base64-encoded WireGuard URLs are also accepted.
+- Supported WireGuard options such as `Address`, `MTU`, `AllowedIPs`, `PresharedKey`, `PersistentKeepalive`, `Reserved` / `ClientId`, and AmneziaWG parameters are preserved when available.
+
 ### Step 2: Select IP Addresses or Configs
 
 #### Option A: Enter Custom IPs or Ranges
@@ -90,7 +99,8 @@ You can combine custom IP ranges with predefined ranges for more flexibility.
 
 - For IP ranges, set the number of outputs. The default is `2048`.
 - Click the **"Generate"** button.
-- The tool processes the base configuration and replaces the IP address with each IP from the specified ranges or config list.
+- In **WireGuard** mode, the tool converts the provided WireGuard configs directly to `wireguard://` URLs.
+- In other modes, the tool processes the base configuration and replaces the IP address with each IP from the specified ranges or config list.
 - The generated configurations will be available for copying or downloading.
 
 ### Step 4: Export Configurations
