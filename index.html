@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#141c23">
     <script>document.documentElement.setAttribute('data-bs-theme', localStorage.getItem('theme') || 'dark');</script>
     <link href="assets/css/bootstrap.min.css?v=5.3.3" rel="stylesheet">
-    <link href="assets/css/style.css?v=1.15" rel="stylesheet">
+    <link href="assets/css/style.css?v=1.16" rel="stylesheet">
 </head>
 <body class="d-flex flex-column min-vh-100">
 <nav class="navbar app-navbar border-bottom py-0">
@@ -82,8 +82,8 @@
                         <label class="btn btn-outline-secondary w-100" for="typeSniSpoof">SNI Spoof</label>
                     </div>
                     <div>
-                        <input type="radio" class="btn-check" name="inputTypeOption" id="typePattng" value="pattng" onchange="document.getElementById('inputType').value = this.value; toggleInputFields();">
-                        <label class="btn btn-outline-secondary w-100" for="typePattng">PattNG</label>
+                        <input type="radio" class="btn-check" name="inputTypeOption" id="typeFragFP" value="fragfp" onchange="document.getElementById('inputType').value = this.value; toggleInputFields();">
+                        <label class="btn btn-outline-secondary w-100" for="typeFragFP">Frag + FP</label>
                     </div>
                     <div>
                         <input type="radio" class="btn-check" name="inputTypeOption" id="typeWireGuard" value="wireguard" onchange="document.getElementById('inputType').value = this.value; toggleInputFields();">
@@ -97,11 +97,11 @@
                     <div id="ipListMessage" class="form-text field-message" aria-live="polite"></div>
                 </div>
 
-                <div id="pattngFields" class="method-panel mb-0" style="display: none;">
-                    <label for="pattngIpList" class="form-label">IP List</label>
-                    <textarea id="pattngIpList" class="form-control font-monospace code-input" rows="5" placeholder="104.21.70.21" spellcheck="false" aria-describedby="pattngMessage">104.21.70.21
+                <div id="fragfpFields" class="method-panel mb-0" style="display: none;">
+                    <label for="fragfpIpList" class="form-label">IP List</label>
+                    <textarea id="fragfpIpList" class="form-control font-monospace code-input" rows="5" placeholder="104.21.70.21" spellcheck="false" aria-describedby="fragfpMessage">104.21.70.21
 188.114.97.6</textarea>
-                    <div id="pattngMessage" class="form-text field-message" aria-live="polite"></div>
+                    <div id="fragfpMessage" class="form-text field-message" aria-live="polite"></div>
                 </div>
 
                 <div id="cidrFields" class="method-panel mb-0" style="display: none;">
@@ -165,6 +165,6 @@
 
 <script src="assets/js/ipaddr.min.js?v=2.0.1"></script>
 <script src="assets/js/base64.min.js?v=3.7.7"></script>
-<script src="assets/js/script.js?v=1.15"></script>
+<script src="assets/js/script.js?v=1.16"></script>
 </body>
 </html>

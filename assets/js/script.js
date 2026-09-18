@@ -1,12 +1,5 @@
 let generatedOutput = '';
 
-const PATTNG_PORTS_443 = ['443', '2053', '2083', '2087', '2096', '8443'];
-const PATTNG_PORTS_8080 = ['80', '8080', '8880', '2052', '2082', '2086', '2095'];
-const PATTNG_TRANSPORTS = ['ws', 'xhttp', 'websocket', 'httpupgrade', 'grpc'];
-const PATTNG_FM_443 = decodeURIComponent('%7B%22tcp%22%3A%20%5B%7B%22type%22%3A%20%22fragment%22%2C%20%22settings%22%3A%20%7B%22packets%22%3A%20%22tlshello%22%2C%20%22lengths%22%3A%20%5B%220%22%2C%20%22104%22%2C%20%221%22%5D%2C%20%22delays%22%3A%20%5B%220%22%5D%2C%20%22maxSplit%22%3A%20%220%22%7D%7D%2C%7B%22type%22%3A%20%22fragment%22%2C%20%22settings%22%3A%20%7B%22packets%22%3A%20%221-1%22%2C%20%22lengths%22%3A%20%5B%22114%22%2C%20%221%22%5D%2C%20%22delays%22%3A%20%5B%221%22%5D%2C%20%22maxSplit%22%3A%20%2211%22%7D%7D%5D%7D');
-const PATTNG_CS_443 = decodeURIComponent('TLS_AES_256_GCM_SHA384%3ATLS_CHACHA20_POLY1305_SHA256%3ATLS_AES_128_GCM_SHA256%3ATLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384%3ATLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384%3ATLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256%3ATLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256%3ATLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256%3ATLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256%3ATLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA%3ATLS_ECDHE_RSA_WITH_AES_256_CBC_SHA%3ATLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256%3ATLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256');
-const PATTNG_FM_8080 = decodeURIComponent('%7B%22tcp%22%3A%20%5B%7B%22type%22%3A%20%22fragment%22%2C%20%22settings%22%3A%20%7B%22packets%22%3A%20%221-1%22%2C%20%22lengths%22%3A%20%5B%221%22%5D%2C%20%22delays%22%3A%20%5B%224%22%5D%2C%20%22maxSplit%22%3A%20%22522%22%7D%7D%5D%7D');
-
 function showMessage(message, type) {
     const messageBox = document.getElementById('messageBox');
     const messageText = document.getElementById('messageText');
@@ -105,14 +98,14 @@ function toggleInputFields() {
     const listFields = document.getElementById('listFields');
     const configListFields = document.getElementById('configListFields');
     const sniSpoofFields = document.getElementById('sniSpoofFields');
-    const pattngFields = document.getElementById('pattngFields');
+    const fragfpFields = document.getElementById('fragfpFields');
     const inputConfig = document.getElementById('inputConfig');
 
     cidrFields.style.display = 'none';
     listFields.style.display = 'none';
     configListFields.style.display = 'none';
     sniSpoofFields.style.display = 'none';
-    pattngFields.style.display = 'none';
+    fragfpFields.style.display = 'none';
     inputConfig.placeholder = inputType === 'wireguard' ? '[Interface]...' : 'vless://...';
 
     if (inputType === 'cidr') {
@@ -123,8 +116,8 @@ function toggleInputFields() {
         configListFields.style.display = 'block';
     } else if (inputType === 'sniSpoof') {
         sniSpoofFields.style.display = 'block';
-    } else if (inputType === 'pattng') {
-        pattngFields.style.display = 'block';
+    } else if (inputType === 'fragfp') {
+        fragfpFields.style.display = 'block';
     }
 
     updateBaseConfigCount();
@@ -319,23 +312,23 @@ function generateConfigs() {
         modifyConfigsFromConfigsList(baseConfigs);
     } else if (inputType === 'sniSpoof') {
         modifyConfigsFromSNISpoof(baseConfigs);
-    } else if (inputType === 'pattng') {
-        modifyConfigsForPattNG(baseConfigs);
+    } else if (inputType === 'fragfp') {
+        modifyConfigsForFragFP(baseConfigs);
     }
 }
 
-function modifyConfigsForPattNG(baseConfigs) {
-    const rawText = document.getElementById('pattngIpList').value.trim();
+function modifyConfigsForFragFP(baseConfigs) {
+    const rawText = document.getElementById('fragfpIpList').value.trim();
 
     if (!rawText) {
-        showFieldMessage('pattngMessage', 'Please enter the IP list.');
+        showFieldMessage('fragfpMessage', 'Please enter the IP list.');
         return;
     }
 
     const validIpList = extractValidIPs(rawText);
 
     if (validIpList.length === 0) {
-        showFieldMessage('pattngMessage', 'No valid IPs found in the input.');
+        showFieldMessage('fragfpMessage', 'No valid IPs found in the input.');
         return;
     }
 
@@ -343,7 +336,7 @@ function modifyConfigsForPattNG(baseConfigs) {
 
     for (const config of baseConfigs) {
         for (const ip of validIpList) {
-            const transformedConfig = transformPattNGConfig(config.trim(), ip);
+            const transformedConfig = transformFragFPConfig(config.trim(), ip);
             if (transformedConfig) configs.push(transformedConfig);
         }
     }
@@ -353,9 +346,8 @@ function modifyConfigsForPattNG(baseConfigs) {
     displayResult(uniqueConfigs.length);
 }
 
-function transformPattNGConfig(config, ip) {
-    const configType = detectConfigType(config);
-    if (configType !== 'vless' && configType !== 'trojan') return '';
+function transformFragFPConfig(config, ip) {
+    if (!['vless', 'trojan'].includes(detectConfigType(config))) return '';
 
     let node;
     try {
@@ -364,15 +356,14 @@ function transformPattNGConfig(config, ip) {
         return '';
     }
 
-    const security = getPattNGParam(node, 'security').toLowerCase();
-    const transport = getPattNGParam(node, 'type').toLowerCase();
-    const host = getPattNGParam(node, 'host');
+    const security = getFragFPParam(node, 'security').toLowerCase();
+    const host = getFragFPParam(node, 'host');
     const tls = security === 'tls';
 
     if (!['', 'tls', 'none'].includes(security)) return '';
-    if (!PATTNG_TRANSPORTS.includes(transport) || !host.trim()) return '';
-    if (tls && !PATTNG_PORTS_443.includes(node.port)) return '';
-    if (!tls && !PATTNG_PORTS_8080.includes(node.port)) return '';
+    if (!['ws', 'xhttp', 'websocket', 'httpupgrade', 'grpc'].includes(getFragFPParam(node, 'type').toLowerCase()) || !host.trim()) return '';
+    if (tls && !['443', '2053', '2083', '2087', '2096', '8443'].includes(node.port)) return '';
+    if (!tls && !['80', '8080', '8880', '2052', '2082', '2086', '2095'].includes(node.port)) return '';
 
     node.hostname = ip.includes(':') ? `[${ip}]` : ip;
     node.port = tls ? '443' : '8080';
@@ -384,33 +375,33 @@ function transformPattNGConfig(config, ip) {
     }
 
     if (tls) {
-        setPattNGParam(node, 'fp', 'unsafe');
-        setPattNGParam(node, 'fm', PATTNG_FM_443);
-        setPattNGParam(node, 'cs', PATTNG_CS_443);
-        setPattNGParam(node, 'sni', host);
+        setFragFPParam(node, 'fp', 'unsafe');
+        setFragFPParam(node, 'fm', decodeURIComponent('%7B%22tcp%22%3A%20%5B%7B%22type%22%3A%20%22fragment%22%2C%20%22settings%22%3A%20%7B%22packets%22%3A%20%22tlshello%22%2C%20%22lengths%22%3A%20%5B%220%22%2C%20%22104%22%2C%20%221%22%5D%2C%20%22delays%22%3A%20%5B%220%22%5D%2C%20%22maxSplit%22%3A%20%220%22%7D%7D%2C%7B%22type%22%3A%20%22fragment%22%2C%20%22settings%22%3A%20%7B%22packets%22%3A%20%221-1%22%2C%20%22lengths%22%3A%20%5B%22114%22%2C%20%221%22%5D%2C%20%22delays%22%3A%20%5B%221%22%5D%2C%20%22maxSplit%22%3A%20%2211%22%7D%7D%5D%7D'));
+        setFragFPParam(node, 'cs', decodeURIComponent('TLS_AES_256_GCM_SHA384%3ATLS_CHACHA20_POLY1305_SHA256%3ATLS_AES_128_GCM_SHA256%3ATLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384%3ATLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384%3ATLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256%3ATLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256%3ATLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256%3ATLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256%3ATLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA%3ATLS_ECDHE_RSA_WITH_AES_256_CBC_SHA%3ATLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256%3ATLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256'));
+        setFragFPParam(node, 'sni', host);
     } else {
-        setPattNGParam(node, 'fm', PATTNG_FM_8080);
+        setFragFPParam(node, 'fm', decodeURIComponent('%7B%22tcp%22%3A%20%5B%7B%22type%22%3A%20%22fragment%22%2C%20%22settings%22%3A%20%7B%22packets%22%3A%20%221-1%22%2C%20%22lengths%22%3A%20%5B%221%22%5D%2C%20%22delays%22%3A%20%5B%224%22%5D%2C%20%22maxSplit%22%3A%20%22522%22%7D%7D%5D%7D'));
         for (const key of ['sni', 'alpn', 'fp', 'cs']) {
-            deletePattNGParam(node, key);
+            deleteFragFPParam(node, key);
         }
     }
 
     return node.toString().replace(/\+/g, '%20');
 }
 
-function getPattNGParam(node, key) {
+function getFragFPParam(node, key) {
     for (const [name, value] of node.searchParams) {
         if (name.toLowerCase() === key) return value;
     }
     return '';
 }
 
-function setPattNGParam(node, key, value) {
-    deletePattNGParam(node, key);
+function setFragFPParam(node, key, value) {
+    deleteFragFPParam(node, key);
     node.searchParams.set(key, value);
 }
 
-function deletePattNGParam(node, key) {
+function deleteFragFPParam(node, key) {
     for (const name of [...node.searchParams.keys()]) {
         if (name.toLowerCase() === key) node.searchParams.delete(name);
     }
