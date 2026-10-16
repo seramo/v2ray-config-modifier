@@ -99,6 +99,7 @@ function toggleInputFields() {
     const configListFields = document.getElementById('configListFields');
     const sniSpoofFields = document.getElementById('sniSpoofFields');
     const fragfpFields = document.getElementById('fragfpFields');
+    const echFields = document.getElementById('echFields');
     const inputConfig = document.getElementById('inputConfig');
 
     cidrFields.style.display = 'none';
@@ -106,6 +107,7 @@ function toggleInputFields() {
     configListFields.style.display = 'none';
     sniSpoofFields.style.display = 'none';
     fragfpFields.style.display = 'none';
+    echFields.style.display = 'none';
     inputConfig.placeholder = inputType === 'wireguard' ? '[Interface]...' : 'vless://...';
 
     if (inputType === 'cidr') {
@@ -118,6 +120,8 @@ function toggleInputFields() {
         sniSpoofFields.style.display = 'block';
     } else if (inputType === 'fragfp') {
         fragfpFields.style.display = 'block';
+    } else if (inputType === 'ech') {
+        echFields.style.display = 'block';
     }
 
     updateBaseConfigCount();
@@ -144,6 +148,12 @@ function incrementIP(ip) {
     return new ipaddr.IPv4(nextIpOctets);
 }
 
+function extractValidIPs(rawText) {
+    const matches = rawText.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g) || [];
+
+    return [...new Set(matches)].filter(ip => ipaddr.isValid(ip) && ipaddr.parse(ip).kind() === 'ipv4');
+}
+
 function isValidConfigFormat(inputConfig) {
     if (inputConfig.startsWith('vmess://') || inputConfig.startsWith('vless://') ||
         inputConfig.startsWith('wireguard://') || inputConfig.startsWith('trojan://')) {
@@ -163,6 +173,63 @@ function detectConfigType(inputConfig) {
         return 'trojan';
     }
     return null;
+}
+
+function decodeVmessConfig(config) {
+    try {
+        return JSON.parse(Base64.decode(config.substring(8)));
+    } catch (error) {
+        return null;
+    }
+}
+
+function encodeVmessConfig(config) {
+    return `vmess://${Base64.encode(JSON.stringify(config))}`;
+}
+
+function getConfigParam(config, key) {
+    const paramKey = key.toLowerCase();
+
+    for (const [name, value] of config.searchParams) {
+        if (name.toLowerCase() === paramKey) return value;
+    }
+
+    return '';
+}
+
+function setConfigParam(config, key, value) {
+    const paramKey = key.toLowerCase();
+
+    for (const name of [...config.searchParams.keys()]) {
+        if (name.toLowerCase() === paramKey) config.searchParams.delete(name);
+    }
+
+    config.searchParams.set(key, value);
+}
+
+function setConfigParams(config, params) {
+    const configType = detectConfigType(config);
+    if (!configType) return '';
+
+    if (configType === 'vmess') {
+        const vmessConfig = decodeVmessConfig(config);
+        if (!vmessConfig) return '';
+
+        Object.assign(vmessConfig, params);
+        return encodeVmessConfig(vmessConfig);
+    }
+
+    try {
+        const parsedConfig = new URL(config);
+
+        for (const [key, value] of Object.entries(params)) {
+            setConfigParam(parsedConfig, key, value);
+        }
+
+        return parsedConfig.toString().replace(/\+/g, '%20');
+    } catch (error) {
+        return '';
+    }
 }
 
 function normalizeConfigWhitespace(config) {
@@ -187,6 +254,58 @@ function getBase64Configs(rawInput) {
 function getBaseConfigs(rawInput) {
     const configs = getDirectConfigs(rawInput);
     return configs.length > 0 ? configs : getBase64Configs(rawInput);
+}
+
+function extractAddressFromConfig(config) {
+    const configType = detectConfigType(config);
+
+    if (configType === 'vmess') {
+        const vmessConfig = decodeVmessConfig(config);
+        return vmessConfig ? vmessConfig.add : null;
+    } else if (configType === 'vless') {
+        const regex = /vless:\/\/([^@]+)@([^:]+):(\d+)(\?[^#]*)?(#.*)?/;
+        const match = config.match(regex);
+        const address = match[2];
+        return address;
+    } else if (configType === 'wireguard') {
+        const regex = /wireguard:\/\/[^@]+@([^:]+):.+/;
+        const match = config.match(regex);
+        return match[1];
+    } else if (configType === 'trojan') {
+        const regex = /trojan:\/\/[^@]+@([^:]+):.+/;
+        const match = config.match(regex);
+        return match[1];
+    }
+
+    return null;
+}
+
+function replaceIPAndPortInConfig(inputConfig, ipOrAddress, newPort = null) {
+    const configType = detectConfigType(inputConfig);
+    let addressStr = typeof ipOrAddress === 'string' ? ipOrAddress : ipOrAddress.toString();
+    let result = '';
+
+    if (configType === 'vmess') {
+        const vmessConfig = decodeVmessConfig(inputConfig);
+        if (!vmessConfig) return '';
+
+        vmessConfig.add = addressStr;
+        if (newPort) vmessConfig.port = parseInt(newPort);
+        result = `${encodeVmessConfig(vmessConfig)}\n\n`;
+    } else if (configType === 'vless') {
+        addressStr = addressStr.includes(':') && !addressStr.startsWith('[') ? `[${addressStr}]` : addressStr;
+        const match = inputConfig.match(/^(vless:\/\/[^@]+)@([^:]+):(\d+)(.*)$/);
+        const [_, start, domain, port, end] = match;
+        result = `${start}@${addressStr}:${newPort || port}${end}\n\n`;
+    } else if (configType === 'wireguard') {
+        const regex = /^(wireguard:\/\/[^@]+@)[^:]+:(\d+)(.*)$/;
+        result = inputConfig.replace(regex, (m, p1, p2, p3) => `${p1}${addressStr}:${newPort || p2}${p3}\n\n`);
+    } else if (configType === 'trojan') {
+        const regex = /^(trojan:\/\/[^@]+@)[^:]+:(\d+)(.*)$/;
+        result = inputConfig.replace(regex, (m, p1, p2, p3) => `${p1}${addressStr}:${newPort || p2}${p3}\n\n`);
+    }
+
+    return result;
 }
 
 function convertWireGuardConfig(rawConfig) {
@@ -314,95 +433,37 @@ function generateConfigs() {
         modifyConfigsFromSNISpoof(baseConfigs);
     } else if (inputType === 'fragfp') {
         modifyConfigsForFragFP(baseConfigs);
+    } else if (inputType === 'ech') {
+        modifyConfigsForECH(baseConfigs);
     }
 }
 
-function modifyConfigsForFragFP(baseConfigs) {
-    const rawText = document.getElementById('fragfpIpList').value.trim();
+function modifyConfigsFromList(baseConfigs) {
+    const rawText = document.getElementById('ipList').value.trim();
 
-    if (!rawText) {
-        showFieldMessage('fragfpMessage', 'Please enter the IP list.');
+    if (rawText.length === 0) {
+        showFieldMessage('ipListMessage', 'Please enter the IP list.');
         return;
     }
 
     const validIpList = extractValidIPs(rawText);
 
     if (validIpList.length === 0) {
-        showFieldMessage('fragfpMessage', 'No valid IPs found in the input.');
+        showFieldMessage('ipListMessage', 'No valid IPs found in the input.');
         return;
     }
 
-    const configs = [];
+    generatedOutput = '';
+    let count = 0;
 
     for (const config of baseConfigs) {
         for (const ip of validIpList) {
-            const transformedConfig = transformFragFPConfig(config.trim(), ip);
-            if (transformedConfig) configs.push(transformedConfig);
+            generatedOutput += replaceIPAndPortInConfig(config.trim(), ipaddr.parse(ip));
+            count++;
         }
     }
 
-    const uniqueConfigs = [...new Set(configs)];
-    generatedOutput = uniqueConfigs.length ? `${uniqueConfigs.join('\n\n')}\n\n` : '';
-    displayResult(uniqueConfigs.length);
-}
-
-function transformFragFPConfig(config, ip) {
-    if (!['vless', 'trojan'].includes(detectConfigType(config))) return '';
-
-    let node;
-    try {
-        node = new URL(config);
-    } catch (error) {
-        return '';
-    }
-
-    const security = getFragFPParam(node, 'security').toLowerCase();
-    const host = getFragFPParam(node, 'host');
-    const tls = security === 'tls';
-
-    if (!['', 'tls', 'none'].includes(security)) return '';
-    if (!['ws', 'xhttp', 'websocket', 'httpupgrade', 'grpc'].includes(getFragFPParam(node, 'type').toLowerCase()) || !host.trim()) return '';
-    if (tls && !['443', '2053', '2083', '2087', '2096', '8443'].includes(node.port)) return '';
-    if (!tls && !['80', '8080', '8880', '2052', '2082', '2086', '2095'].includes(node.port)) return '';
-
-    node.hostname = ip.includes(':') ? `[${ip}]` : ip;
-    node.port = '443';
-
-    for (const key of [...node.searchParams.keys()]) {
-        if (['allowinsecure', 'allow_insecure', 'insecure', 'fm', 'dialmode', 'ech', 'echoutbound', 'fp', 'cs'].includes(key.toLowerCase())) {
-            node.searchParams.delete(key);
-        }
-    }
-
-    setFragFPParam(node, 'security', 'tls');
-    setFragFPParam(node, 'fp', 'unsafe');
-    setFragFPParam(node, 'fm', decodeURIComponent('%7B%22tcp%22%3A%20%5B%7B%22type%22%3A%20%22fragment%22%2C%20%22settings%22%3A%20%7B%22packets%22%3A%20%22tlshello%22%2C%20%22lengths%22%3A%20%5B%220%22%2C%20%22104%22%2C%20%221%22%5D%2C%20%22delays%22%3A%20%5B%220%22%5D%2C%20%22maxSplit%22%3A%20%220%22%7D%7D%2C%7B%22type%22%3A%20%22fragment%22%2C%20%22settings%22%3A%20%7B%22packets%22%3A%20%221-1%22%2C%20%22lengths%22%3A%20%5B%22114%22%2C%20%221%22%5D%2C%20%22delays%22%3A%20%5B%221%22%5D%2C%20%22maxSplit%22%3A%20%2211%22%7D%7D%5D%7D'));
-    setFragFPParam(node, 'cs', decodeURIComponent('TLS_AES_256_GCM_SHA384%3ATLS_CHACHA20_POLY1305_SHA256%3ATLS_AES_128_GCM_SHA256%3ATLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384%3ATLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384%3ATLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256%3ATLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256%3ATLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256%3ATLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256%3ATLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA%3ATLS_ECDHE_RSA_WITH_AES_256_CBC_SHA%3ATLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256%3ATLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256'));
-    setFragFPParam(node, 'sni', host);
-
-    if (['ws', 'websocket', 'httpupgrade'].includes(getFragFPParam(node, 'type').toLowerCase())) {
-        setFragFPParam(node, 'alpn', 'http/1.1');
-    }
-
-    return node.toString().replace(/\+/g, '%20');
-}
-
-function getFragFPParam(node, key) {
-    for (const [name, value] of node.searchParams) {
-        if (name.toLowerCase() === key) return value;
-    }
-    return '';
-}
-
-function setFragFPParam(node, key, value) {
-    deleteFragFPParam(node, key);
-    node.searchParams.set(key, value);
-}
-
-function deleteFragFPParam(node, key) {
-    for (const name of [...node.searchParams.keys()]) {
-        if (name.toLowerCase() === key) node.searchParams.delete(name);
-    }
+    displayResult(count);
 }
 
 function modifyConfigsFromCIDR(baseConfigs) {
@@ -443,40 +504,6 @@ function modifyConfigsFromCIDR(baseConfigs) {
             }
 
             if (count >= outputCount) break;
-        }
-    }
-
-    displayResult(count);
-}
-
-function extractValidIPs(rawText) {
-    const matches = rawText.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g) || [];
-
-    return [...new Set(matches)].filter(ip => ipaddr.isValid(ip) && ipaddr.parse(ip).kind() === 'ipv4');
-}
-
-function modifyConfigsFromList(baseConfigs) {
-    const rawText = document.getElementById('ipList').value.trim();
-
-    if (rawText.length === 0) {
-        showFieldMessage('ipListMessage', 'Please enter the IP list.');
-        return;
-    }
-
-    const validIpList = extractValidIPs(rawText);
-
-    if (validIpList.length === 0) {
-        showFieldMessage('ipListMessage', 'No valid IPs found in the input.');
-        return;
-    }
-
-    generatedOutput = '';
-    let count = 0;
-
-    for (const config of baseConfigs) {
-        for (const ip of validIpList) {
-            generatedOutput += replaceIPAndPortInConfig(config.trim(), ipaddr.parse(ip));
-            count++;
         }
     }
 
@@ -527,56 +554,101 @@ function modifyConfigsFromSNISpoof(baseConfigs) {
     displayResult(count);
 }
 
-function extractAddressFromConfig(config) {
-    let configType = detectConfigType(config);
+function modifyConfigsForFragFP(baseConfigs) {
+    const rawText = document.getElementById('fragfpIpList').value.trim();
 
-    if (configType === 'vmess') {
-        const base64Str = config.substring(8);
-        const decodedStr = Base64.decode(base64Str);
-        const vmessConfig = JSON.parse(decodedStr);
-        return vmessConfig.add;
-    } else if (configType === 'vless') {
-        const regex = /vless:\/\/([^@]+)@([^:]+):(\d+)(\?[^#]*)?(#.*)?/;
-        const match = config.match(regex);
-        const address = match[2];
-        return address;
-    } else if (configType === 'wireguard') {
-        const regex = /wireguard:\/\/[^@]+@([^:]+):.+/;
-        const match = config.match(regex);
-        return match[1];
-    } else if (configType === 'trojan') {
-        const regex = /trojan:\/\/[^@]+@([^:]+):.+/;
-        const match = config.match(regex);
-        return match[1];
+    if (!rawText) {
+        showFieldMessage('fragfpMessage', 'Please enter the IP list.');
+        return;
     }
 
-    return null;
+    const validIpList = extractValidIPs(rawText);
+
+    if (validIpList.length === 0) {
+        showFieldMessage('fragfpMessage', 'No valid IPs found in the input.');
+        return;
+    }
+
+    const configs = [];
+
+    for (const config of baseConfigs) {
+        for (const ip of validIpList) {
+            const transformedConfig = transformFragFPConfig(config.trim(), ip);
+            if (transformedConfig) configs.push(transformedConfig);
+        }
+    }
+
+    const uniqueConfigs = [...new Set(configs)];
+    generatedOutput = uniqueConfigs.length ? `${uniqueConfigs.join('\n\n')}\n\n` : '';
+    displayResult(uniqueConfigs.length);
 }
 
-function replaceIPAndPortInConfig(inputConfig, ipOrAddress, newPort = null) {
-    let configType = detectConfigType(inputConfig);
-    let addressStr = typeof ipOrAddress === 'string' ? ipOrAddress : ipOrAddress.toString();
-    let result = '';
+function transformFragFPConfig(config, ip) {
+    if (!['vless', 'trojan'].includes(detectConfigType(config))) return '';
 
-    if (configType === 'vmess') {
-        let vmessConfig = JSON.parse(Base64.decode(inputConfig.replace('vmess://', '')));
-        vmessConfig.add = addressStr;
-        if (newPort) vmessConfig.port = parseInt(newPort);
-        result = `vmess://${Base64.encode(JSON.stringify(vmessConfig))}\n\n`;
-    } else if (configType === 'vless') {
-        addressStr = addressStr.includes(':') && !addressStr.startsWith('[') ? `[${addressStr}]` : addressStr;
-        const match = inputConfig.match(/^(vless:\/\/[^@]+)@([^:]+):(\d+)(.*)$/);
-        const [_, start, domain, port, end] = match;
-        result = `${start}@${addressStr}:${newPort || port}${end}\n\n`;
-    } else if (configType === 'wireguard') {
-        const regex = /^(wireguard:\/\/[^@]+@)[^:]+:(\d+)(.*)$/;
-        result = inputConfig.replace(regex, (m, p1, p2, p3) => `${p1}${addressStr}:${newPort || p2}${p3}\n\n`);
-    } else if (configType === 'trojan') {
-        const regex = /^(trojan:\/\/[^@]+@)[^:]+:(\d+)(.*)$/;
-        result = inputConfig.replace(regex, (m, p1, p2, p3) => `${p1}${addressStr}:${newPort || p2}${p3}\n\n`);
+    let parsedConfig;
+    try {
+        parsedConfig = new URL(config);
+    } catch (error) {
+        return '';
     }
 
-    return result;
+    const security = getConfigParam(parsedConfig, 'security').toLowerCase();
+    const host = getConfigParam(parsedConfig, 'host');
+    const tls = security === 'tls';
+
+    if (!['', 'tls', 'none'].includes(security)) return '';
+    if (!['ws', 'xhttp', 'websocket', 'httpupgrade', 'grpc'].includes(getConfigParam(parsedConfig, 'type').toLowerCase()) || !host.trim()) return '';
+    if (tls && !['443', '2053', '2083', '2087', '2096', '8443'].includes(parsedConfig.port)) return '';
+    if (!tls && !['80', '8080', '8880', '2052', '2082', '2086', '2095'].includes(parsedConfig.port)) return '';
+
+    parsedConfig.hostname = ip.includes(':') ? `[${ip}]` : ip;
+    parsedConfig.port = '443';
+
+    for (const key of [...parsedConfig.searchParams.keys()]) {
+        if (['allowinsecure', 'allow_insecure', 'insecure', 'fm', 'dialmode', 'ech', 'echoutbound', 'fp', 'cs'].includes(key.toLowerCase())) {
+            parsedConfig.searchParams.delete(key);
+        }
+    }
+
+    setConfigParam(parsedConfig, 'security', 'tls');
+    setConfigParam(parsedConfig, 'fp', 'unsafe');
+    setConfigParam(parsedConfig, 'fm', decodeURIComponent('%7B%22tcp%22%3A%20%5B%7B%22type%22%3A%20%22fragment%22%2C%20%22settings%22%3A%20%7B%22packets%22%3A%20%22tlshello%22%2C%20%22lengths%22%3A%20%5B%220%22%2C%20%22104%22%2C%20%221%22%5D%2C%20%22delays%22%3A%20%5B%220%22%5D%2C%20%22maxSplit%22%3A%20%220%22%7D%7D%2C%7B%22type%22%3A%20%22fragment%22%2C%20%22settings%22%3A%20%7B%22packets%22%3A%20%221-1%22%2C%20%22lengths%22%3A%20%5B%22114%22%2C%20%221%22%5D%2C%20%22delays%22%3A%20%5B%221%22%5D%2C%20%22maxSplit%22%3A%20%2211%22%7D%7D%5D%7D'));
+    setConfigParam(parsedConfig, 'cs', decodeURIComponent('TLS_AES_256_GCM_SHA384%3ATLS_CHACHA20_POLY1305_SHA256%3ATLS_AES_128_GCM_SHA256%3ATLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384%3ATLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384%3ATLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256%3ATLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256%3ATLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256%3ATLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256%3ATLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA%3ATLS_ECDHE_RSA_WITH_AES_256_CBC_SHA%3ATLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256%3ATLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256'));
+    setConfigParam(parsedConfig, 'sni', host);
+
+    if (['ws', 'websocket', 'httpupgrade'].includes(getConfigParam(parsedConfig, 'type').toLowerCase())) {
+        setConfigParam(parsedConfig, 'alpn', 'http/1.1');
+    }
+
+    return parsedConfig.toString().replace(/\+/g, '%20');
+}
+
+function modifyConfigsForECH(baseConfigs) {
+    const echList = [...new Set(document.getElementById('echList').value
+        .split(/\r?\n/)
+        .map(ech => ech.trim())
+        .filter(Boolean))];
+
+    if (echList.length === 0) {
+        showFieldMessage('echMessage', 'Please enter at least one ECH config.');
+        return;
+    }
+
+    const configs = [];
+
+    for (const config of baseConfigs) {
+        if (!['vmess', 'vless', 'trojan'].includes(detectConfigType(config))) continue;
+
+        for (const ech of echList) {
+            const transformedConfig = setConfigParams(config.trim(), { ech });
+            if (transformedConfig) configs.push(transformedConfig);
+        }
+    }
+
+    const uniqueConfigs = [...new Set(configs)];
+    generatedOutput = uniqueConfigs.length ? `${uniqueConfigs.join('\n\n')}\n\n` : '';
+    displayResult(uniqueConfigs.length);
 }
 
 function displayResult(count) {
