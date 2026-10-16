@@ -14,7 +14,7 @@ The **V2Ray Config Modifier** is an HTML and JavaScript-based application design
 - **Predefined IP Ranges**: Easily select from existing IP ranges of Cloudflare, Gcore, or Fastly.
 - **Config List Support**: Paste a list of VMESS, VLESS, WireGuard, or Trojan configurations and generate new ones based on a base config.
 - **SNI Spoof**: Replace the target IP and port with custom values.
-- **Frag + FP**: Generate Fragment + Fingerprint configs using a custom IP list, with `104.21.70.21` and `188.114.97.6` as the default IPs.
+- **Frag + FP**: Generate Fragment + Fingerprint configs using a custom IP list, with `188.114.98.0` as the default IP. Supported non-TLS Cloudflare configs are converted to TLS on port `443`.
 - **Bulk Config Generation**: Generates configurations for all specified IP addresses or configurations in one click.
 - **User-Friendly Interface**: Simple light and dark interface with no installation needed.
 - **Export Options**: Save generated configurations to a file or copy to the clipboard.
@@ -89,7 +89,7 @@ This web-based version is fully functional and allows you to generate and downlo
 
 #### Option E: Frag + FP
 
-- Enter one or more IP addresses for Frag + FP. The default IPs are `104.21.70.21` and `188.114.97.6`.
+- Enter one or more IP addresses for Frag + FP. The default IP is `188.114.98.0`. Supported non-TLS Cloudflare configs are converted to TLS on port `443`.
 
 #### Note
 
