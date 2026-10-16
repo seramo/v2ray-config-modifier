@@ -232,6 +232,25 @@ function setConfigParams(config, params) {
     }
 }
 
+function isTLSConfig(config) {
+    const configType = detectConfigType(config);
+
+    if (configType === 'vmess') {
+        const vmessConfig = decodeVmessConfig(config);
+        if (!vmessConfig) return false;
+
+        return String(vmessConfig.tls || '').toLowerCase() === 'tls';
+    }
+
+    if (!['vless', 'trojan'].includes(configType)) return false;
+
+    try {
+        return getConfigParam(new URL(config), 'security').toLowerCase() === 'tls';
+    } catch (error) {
+        return false;
+    }
+}
+
 function normalizeConfigWhitespace(config) {
     return config.replace(/[^\S\r\n]/g, character => encodeURIComponent(character));
 }
@@ -638,7 +657,7 @@ function modifyConfigsForECH(baseConfigs) {
     const configs = [];
 
     for (const config of baseConfigs) {
-        if (!['vmess', 'vless', 'trojan'].includes(detectConfigType(config))) continue;
+        if (!isTLSConfig(config)) continue;
 
         for (const ech of echList) {
             const transformedConfig = setConfigParams(config.trim(), { ech });

@@ -15,7 +15,7 @@ The **V2Ray Config Modifier** is an HTML and JavaScript-based application design
 - **Config List Support**: Paste a list of VMESS, VLESS, WireGuard, or Trojan configurations and generate new ones based on a base config.
 - **SNI Spoof**: Replace the target IP and port with custom values.
 - **Frag + FP**: Generate Fragment + Fingerprint configs using a custom IP list, with `188.114.98.0` as the default IP. Supported non-TLS Cloudflare configs are converted to TLS on port `443`.
-- **ECH**: Add or replace the `ech` parameter in VMESS, VLESS, and Trojan configs using a custom ECH list. The default is `cloudflare-ech.com+udp://1.1.1.1`.
+- **ECH**: Add or replace the `ech` parameter in TLS VMESS, VLESS, and Trojan configs. The default is `cloudflare-ech.com+udp://1.1.1.1`.
 - **Bulk Config Generation**: Generates configurations for all specified IP addresses or configurations in one click.
 - **User-Friendly Interface**: Simple light and dark interface with no installation needed.
 - **Export Options**: Save generated configurations to a file or copy to the clipboard.
